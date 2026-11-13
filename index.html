@@ -152,6 +152,10 @@ nav svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.9;st
 .mrow[data-reg] .fl,.legend i[data-reg]{background:var(--rc)}
 .card[data-reg] .ch .ln,.card[data-reg] .ch .pt{stroke:var(--rc)}.card[data-reg] .ch .lp,.card[data-reg] .ch .hd{fill:var(--rc)}.card[data-reg] .ch .ar{fill:var(--rc);opacity:.12}
 .pill.wn{background:none;box-shadow:inset 0 0 0 1px var(--line);color:var(--mute)}
+.welcome{min-height:calc(100dvh - 60px);display:flex;flex-direction:column;justify-content:center;gap:22px;padding-block:24px}
+.welcome h1{font-size:72px}.lead{font-size:18px;color:var(--mute);margin-top:10px;max-width:34ch}
+.logo{width:84px;height:84px;border-radius:22px;background:var(--ink);color:var(--inv);display:grid;place-items:center}.logo svg{width:64px;height:64px}
+.wl{display:flex;flex-direction:column;gap:12px;font-size:16px;font-weight:500}.wl>div{display:flex;align-items:baseline}
 button.sn{width:100%;height:46px;border-radius:10px}
 .set.wu .sn{background:var(--fill);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line)}
 .set.wu input{opacity:.7}
@@ -307,9 +311,10 @@ function updHero(){const d=S.day;let dn=0,tt=0;S.plan[d].forEach((e,i)=>{const s
 const muSel=(id,cur)=>`<select id="${id}" aria-label="Muscle group">${Object.keys(RNG).map(k=>`<option${k===cur?' selected':''}>${k}</option>`).join('')}</select>`;
 
 function vTrain(){
- if(!DAYS.length){$('view').innerHTML=`<div class="hero"><div class="hero-row"><span>${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})}</span></div><h1>Welcome</h1></div><section class="card"><h2>Start with a program</h2><p class="sub">Answer five questions about your week, equipment and priorities. The app builds a hypertrophy program, then tracks every set, suggests your next weight and shows your weekly volume per muscle.</p><button class="btn big" data-view="builder">Build my program</button></section><section class="card"><h2>Your data stays on this phone</h2><p class="sub">Nothing is sent anywhere. Use Records, then Storage and backup, to export a copy or move to another phone.</p></section>`;return}
+ if(!DAYS.length){document.querySelector('nav').hidden=true;$('view').innerHTML=`<div class="welcome"><div class="logo" aria-hidden="true"><svg viewBox="0 0 512 512"><g fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round"><path d="M112 216v80M168 168v176M344 168v176M400 216v80M168 256h176"/></g></svg></div><div><h1>PT App</h1><p class="lead">Your hypertrophy coach. It builds your program, tells you what to lift next and tracks your weekly volume per muscle.</p></div><div class="wl"><div><span data-reg="push">${DOT}</span>A program built around your week, equipment and priorities</div><div><span data-reg="pull">${DOT}</span>A target for every exercise, based on your last session</div><div><span data-reg="legs">${DOT}</span>Weekly sets per muscle against the ranges that drive growth</div></div><label class="fld">What should we call you? Optional<input class="txt" id="wn" autocomplete="given-name" placeholder="First name" value="${esc(S.name||'')}"></label><button class="btn big" data-start="1">Get started</button><p class="sub">No account needed. Your data stays on this phone, and you can export a backup at any time.</p></div>`;return}
+ document.querySelector('nav').hidden=false;
  const d=S.day,p=S.plan[d],sched=S.sched[new Date().getDay()];
- let h=`<div class="hero"${ra(dayReg(d))}><div class="hero-row"><span>${new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'})}</span><span id="hc"></span></div><h1>${esc(d)}</h1><div class="bar"><i id="hb"></i></div></div>`;
+ let h=`<div class="hero"${ra(dayReg(d))}><div class="hero-row"><span>${S.name?'Hi '+esc(S.name)+', ':''}${new Date().toLocaleDateString('en-GB',{weekday:S.name?'short':'long',day:'numeric',month:'short'})}</span><span id="hc"></span></div><h1>${esc(d)}</h1><div class="bar"><i id="hb"></i></div></div>`;
  h+=`<div class="chips">${DAYS.map(x=>`<button class="chip${x===sched?' tdy':''}" data-day="${x}"${ra(dayReg(x))} aria-pressed="${x===d}">${x}</button>`).join('')}</div>`;
  h+=banner();
  h+=`<div class="rest-row"><span>Rest timer</span>${[60,90,120,180].map(s=>`<button class="chip sm" data-t="${s}">${mm(s)}</button>`).join('')}</div>`;
@@ -439,6 +444,7 @@ document.addEventListener('input',ev=>{const row=ev.target.closest('.set');if(!r
  const s=sets(S.day,+row.dataset.e)[+row.dataset.s],c=ev.target.classList;if(c.contains('kg'))s.kg=ev.target.value;else if(c.contains('rp'))s.reps=ev.target.value;else s.rir=ev.target.value;save()});
 document.addEventListener('click',ev=>{
  const t=ev.target.closest('button');if(!t)return;const ds=t.dataset,d=S.day,num=id=>parseFloat(($(id).value||'').replace(',','.'))||0;
+ if(ds.start){const n=($('wn').value||'').trim().slice(0,24);if(n)S.name=n;else delete S.name;save();document.querySelector('nav').hidden=false;go('builder');return}
  if(ds.view){go(ds.view);return}
  if(ds.day){S.day=ds.day;logText='';ed=-1;edRm=false;save();render();return}
  if(ds.t){startTimer(+ds.t);return}
