@@ -369,7 +369,7 @@ function vBody(){
  h+=`<section class="card"><h2>Add entry</h2><div class="frow"><input id="bdt" class="txt" type="date" value="${today()}" aria-label="Date"></div><div class="frow"><input id="bwk" inputmode="decimal" placeholder="Weight kg" aria-label="Weight in kg"><input id="bft" inputmode="decimal" placeholder="Fat %" aria-label="Body fat percent"></div><div class="frow"><input id="bms" inputmode="decimal" placeholder="Muscle kg" aria-label="Muscle mass in kg"><input id="bkc" inputmode="numeric" placeholder="kcal" aria-label="Calories"></div><button class="btn" data-bw="1">Save entry</button><p class="sub">Saving on a date that already has an entry updates it.</p></section>`;
  h+=`<section class="card"><h2>Entries</h2>${bw.length?`<div class="list">${bw.slice(-12).reverse().map(x=>`<div class="li"><span><b>${dl(x.date)}</b> ${[x.kg&&x.kg+' kg',x.fat&&x.fat+'% fat',x.mus&&x.mus+' kg muscle',x.kc&&x.kc+' kcal'].filter(Boolean).join(', ')}</span><button class="lnk" data-bdel="${x.date}">Remove</button></div>`).join('')}</div>`:'<p class="sub">Nothing logged yet.</p>'}</section>`;
  h+=tapeHtml();
- h+=`<section class="card"><h2>Nutrition targets</h2><p class="sub">Estimate your daily calories, protein, fat and carbs, and the weekly weight change to aim for.</p><a class="btn ghost" href="feeding-muscle-growth.html#calc">Open the calculator</a></section>`;
+ h+=`<section class="card"><h2>Nutrition targets</h2><p class="sub">A short guide to eating for muscle growth. It ends with a calculator for your daily calories, protein, fat and carbs.</p><a class="btn ghost" href="feeding-muscle-growth.html">Open the nutrition guide</a></section>`;
  $('view').innerHTML=h}
 
 function tapeHtml(){const tp=S.tape,a=tp.filter(x=>x[ptp]).slice(-60);
