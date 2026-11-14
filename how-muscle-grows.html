@@ -46,7 +46,7 @@ html { padding-top: env(safe-area-inset-top, 0px); }
 .back:hover { border-color: var(--ink); }
 .back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 .short + .sources { padding-bottom: 24px; }
-.end { padding-block: 0 80px; display: flex; }
+.end { padding-block: 0 80px; display: flex; flex-wrap: wrap; gap: 10px; }
 body {
   margin: 0;
   background: var(--bg);
@@ -232,7 +232,7 @@ h2 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 0.98; }
     </ul>
     <p>The two charts plot published figures. The structure, recruitment, fibre and loop animations are simplified illustrations, and their percentages are not measurements. This page is general education, not individual medical advice.</p>
   </section>
-  <div class="end"><a class="back" href="./">← Back to PT App</a></div>
+  <div class="end"><a class="back" href="./">← Back to PT App</a><a class="back" href="feeding-muscle-growth.html">Feeding muscle growth →</a></div>
 </div>
 
 <script>
