@@ -12,6 +12,17 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
 </head>
 <body>
+<script>
+/* Always open at the first slide, whatever scroll position the previous screen had. */
+(function () {
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+  function top() { if (location.hash !== '#calc') window.scrollTo(0, 0); }
+  top();
+  window.addEventListener('DOMContentLoaded', top);
+  window.addEventListener('load', function () { top(); setTimeout(top, 60); setTimeout(top, 300); });
+  window.addEventListener('pageshow', top);
+})();
+</script>
 <style>
 /* Layout: text steps scroll past one sticky drawing stage (right column on desktop, top band on phones),
    then a calculator turns the story into personal targets.
@@ -176,6 +187,7 @@ html { padding-top: env(safe-area-inset-top, 0px); }
         <p>Start with energy. Your body spends a fairly steady amount each day, mostly on staying alive, then on movement, digestion and training. That total is your maintenance.</p>
         <p>Eat below it and new muscle becomes an expense the body can postpone. Eat a little above it and the signal from training has what it needs.</p>
         <span class="scrollcue">Scroll ↓</span>
+        <a class="back" href="#calc" onclick="document.getElementById('calc').scrollIntoView();return false">Skip to the calculator ↓</a>
       </section>
 
       <section class="step">

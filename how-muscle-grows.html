@@ -12,6 +12,17 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
 </head>
 <body>
+<script>
+/* Always open at the first slide, whatever scroll position the previous screen had. */
+(function () {
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+  function top() { if (location.hash !== '#calc') window.scrollTo(0, 0); }
+  top();
+  window.addEventListener('DOMContentLoaded', top);
+  window.addEventListener('load', function () { top(); setTimeout(top, 60); setTimeout(top, 300); });
+  window.addEventListener('pageshow', top);
+})();
+</script>
 <style>
 /* Layout: text steps scroll past one sticky drawing stage (right column on desktop, top band on phones).
    Colour carries meaning: red is muscle tissue, amber is the signal, teal is newly built protein. */
