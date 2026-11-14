@@ -1,0 +1,616 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Feeding Muscle Growth · PT App</title>
+<meta name="description" content="A scroll-through explainer on nutrition for muscle growth, with a calculator for personal calorie and macro targets.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<style>
+/* Layout: text steps scroll past one sticky drawing stage (right column on desktop, top band on phones),
+   then a calculator turns the story into personal targets.
+   Colour carries meaning: red is protein, amber is carbohydrate and energy, blue is fat, green is the target zone. */
+:root {
+  --bg: #f3f3f1; --surface: #fff; --ink: #0b0b0b; --muted: #666663; --line: #e1e1dd; --fill: #eeeeeb;
+  --protein: #d8432e; --carb: #b97800; --fat: #2456c9; --ok: #167a48;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+    --protein: #e0503c; --carb: #e6a94a; --fat: #5585f5; --ok: #5fd08f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+  --protein: #e0503c; --carb: #e6a94a; --fat: #5585f5; --ok: #5fd08f;
+  color-scheme: dark;
+}
+*, *::before { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.55 var(--font-body);
+  font-variant-numeric: tabular-nums;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+.wrap {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.scrolly { display: grid; grid-template-columns: minmax(0, 30rem) minmax(0, 1fr); column-gap: 56px; }
+.stage {
+  grid-column: 2; grid-row: 1;
+  position: sticky; top: env(safe-area-inset-top, 0px);
+  align-self: start;
+  height: 100vh; height: 100svh;
+  min-width: 0;
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap, .count { position: absolute; margin: 0; font: 500 13px/1.35 var(--font-body); color: var(--muted); }
+.cap { left: 0; right: 0; bottom: 16px; }
+.count { right: 0; top: 16px; }
+.steps { grid-column: 1; grid-row: 1; min-width: 0; }
+.step {
+  min-height: 100vh;
+  display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  padding-block: 12vh;
+}
+.step p { margin: 0; max-width: 34em; }
+.eyebrow { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+h1, h2 {
+  margin: 0;
+  font-family: var(--font-display); font-weight: 700;
+  text-transform: uppercase; text-wrap: balance; letter-spacing: 0.005em;
+}
+h1 { font-size: clamp(3.2rem, 8vw, 6.4rem); line-height: 0.9; }
+h2 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 0.98; }
+.lede { font-size: 1.15rem; }
+.k-p { color: var(--protein); font-weight: 600; }
+.k-c { color: var(--carb); font-weight: 600; }
+.k-f { color: var(--fat); font-weight: 600; }
+.k-ok { color: var(--ok); font-weight: 600; }
+.scrollcue { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+
+.calc { border-top: 1px solid var(--line); padding-block: 72px 32px; display: grid; gap: 24px; }
+.calc > p { margin: 0; max-width: 40em; color: var(--muted); }
+.calc-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr); gap: 20px; align-items: start; }
+.card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: 16px;
+  padding: 18px; display: grid; gap: 16px; min-width: 0;
+}
+.fields { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.fld { display: grid; gap: 6px; font-size: 13.5px; font-weight: 600; color: var(--muted); min-width: 0; }
+.fld.wide { grid-column: 1 / -1; }
+.fld input, .fld select {
+  font: 500 17px var(--font-body); color: var(--ink);
+  background: var(--fill); border: 1px solid transparent; border-radius: 10px;
+  padding: 10px 12px; width: 100%; min-width: 0; min-height: 46px;
+}
+.fld input:focus-visible, .fld select:focus-visible { outline: 2px solid var(--ink); outline-offset: 1px; }
+.seg { display: flex; background: var(--fill); border-radius: 12px; padding: 3px; gap: 3px; }
+.seg label { flex: 1; min-width: 0; position: relative; cursor: pointer; }
+.seg input { position: absolute; opacity: 0; inset: 0; width: 100%; height: 100%; margin: 0; cursor: pointer; }
+.seg span {
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  min-height: 40px; padding: 4px 6px; border-radius: 9px;
+  font: 600 14px/1.15 var(--font-body); color: var(--muted);
+}
+.seg input:checked + span { background: var(--ink); color: var(--bg); }
+.seg input:focus-visible + span { outline: 2px solid var(--ink); outline-offset: 2px; }
+.out-top { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 6px 16px; }
+.big { font: 700 clamp(3rem, 9vw, 4.4rem)/0.9 var(--font-display); }
+.big small { font: 600 15px var(--font-body); color: var(--muted); margin-left: 6px; }
+.sub { color: var(--muted); font-size: 14px; margin: 0; }
+.bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--fill); }
+.bar i { display: block; height: 100%; }
+.bar .bp { background: var(--protein); } .bar .bf { background: var(--fat); } .bar .bc { background: var(--carb); }
+.macros { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.macro { border-top: 3px solid var(--mc); padding-top: 8px; min-width: 0; }
+.macro b { display: block; font: 600 12px/1.2 var(--font-body); letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+.macro .g { font: 700 2.1rem/1 var(--font-display); margin: 6px 0 2px; }
+.macro .g small { font: 600 14px var(--font-body); color: var(--muted); margin-left: 3px; }
+.rows { display: grid; gap: 0; margin: 0; }
+.rows div { display: flex; justify-content: space-between; gap: 16px; padding: 10px 0; border-top: 1px solid var(--line); font-size: 15px; }
+.rows dt { color: var(--muted); } .rows dd { margin: 0; font-weight: 600; text-align: right; }
+.more { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 24px 40px; padding-block: 24px 8px; }
+.more div { border-top: 2px solid var(--ink); padding-top: 12px; }
+.more h3 { margin: 0 0 6px; font: 600 1.35rem/1.1 var(--font-display); }
+.more p { margin: 0; color: var(--muted); font-size: 15px; }
+.sources { padding-block: 32px 80px; color: var(--muted); font-size: 0.9rem; }
+.sources h3 { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px; }
+.sources ul { margin: 0 0 14px; padding-left: 1.1em; display: grid; gap: 4px; max-width: 60em; }
+.sources p { margin: 0; max-width: 60em; }
+
+html { padding-top: env(safe-area-inset-top, 0px); }
+[hidden] { display: none !important; }
+.back {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px;
+  border: 1.5px solid var(--line); border-radius: 12px;
+  color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none;
+}
+.back:hover { border-color: var(--ink); }
+.back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.sources { padding-bottom: 24px; }
+.end { padding-block: 0 80px; display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 819px) {
+  body { font-size: 16px; }
+  .scrolly { display: block; }
+  .stage { height: 44vh; height: 44svh; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .cap { bottom: 10px; } .count { top: 10px; }
+  .step { min-height: 85vh; justify-content: flex-start; padding-block: 36px 60px; }
+  .calc { padding-block: 48px 24px; }
+  .calc-grid { grid-template-columns: minmax(0, 1fr); }
+}
+</style>
+
+<div class="wrap">
+  <div class="scrolly">
+    <div class="stage" id="stage">
+      <canvas id="cv" role="img" aria-label="Animated diagram that follows the text: energy balance, surplus size, protein intake, meals across the day, the macro split, goal profiles and the weekly weight trend."></canvas>
+      <p class="count" id="count">1 / 7</p>
+      <p class="cap" id="cap">Energy in against energy out</p>
+    </div>
+
+    <div class="steps">
+      <section class="step">
+        <a class="back" href="./">← PT App</a>
+        <span class="eyebrow">Energy</span>
+        <h1>Feeding muscle growth</h1>
+        <p class="lede">Training sends the signal to grow. Food supplies the energy and the material to act on it.</p>
+        <p>Start with energy. Your body spends a fairly steady amount each day, mostly on staying alive, then on movement, digestion and training. That total is your maintenance.</p>
+        <p>Eat below it and new muscle becomes an expense the body can postpone. Eat a little above it and the signal from training has what it needs.</p>
+        <span class="scrollcue">Scroll ↓</span>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Surplus</span>
+        <h2>A small surplus is enough</h2>
+        <p><span class="k-p">Muscle</span> can only be built so fast. Past a modest surplus the extra energy has nowhere useful to go, and it is stored as <span class="k-f">fat</span>.</p>
+        <p>Sports nutrition reviews suggest roughly 10–20% above maintenance for newer lifters, which is about 250–500 kcal a day for most people. Advanced lifters gain more slowly and need less.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Protein</span>
+        <h2>Protein has a ceiling</h2>
+        <p><span class="k-p">Protein</span> supplies the amino acids that become new muscle. A pooled analysis of 49 training studies found that gains rise with intake up to about 1.6 g per kg of body weight a day.</p>
+        <p>Beyond roughly 2.2 g/kg there is no clear extra benefit. The 0.8 g/kg minimum set for adults who do not train is well short of what supports growth.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Meals</span>
+        <h2>Spread it over the day</h2>
+        <p>Each protein-rich meal <span class="k-ok">raises muscle building</span> for a few hours. Three to six meals of about 0.4 g/kg each is a simple way to reach the daily total.</p>
+        <p>Exact timing around the workout matters far less than the daily amount. One of those meals within a few hours of training is enough.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Fuel</span>
+        <h2>Then fill in the fuel</h2>
+        <p>With calories and protein set, the rest is fuel. Keep <span class="k-f">fat</span> at about 0.5–1.5 g/kg to support hormones and vitamin absorption.</p>
+        <p>Give what is left to <span class="k-c">carbohydrate</span>, which refills muscle glycogen and powers hard sets. People differ in the split they train best on. Total calories and protein matter most.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Your goal</span>
+        <h2>The numbers move with you</h2>
+        <p><b>More body fat than you want:</b> a moderate deficit, losing 0.5–1% of body weight a week, with protein toward the top of the range to protect muscle.</p>
+        <p><b>New to lifting, or returning:</b> you can gain muscle at around maintenance.</p>
+        <p><b>Lean and trained:</b> a small surplus is the fastest route. Bigger bodies need more of everything, which is why the targets are set per kilogram.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Adjust</span>
+        <h2>Let the scale steer</h2>
+        <p>Every calorie target is an estimate. Weigh yourself a few mornings a week and follow the weekly average, because single days swing with water and food.</p>
+        <p>When gaining, about <span class="k-ok">0.25–0.5% of body weight a week</span> is a reasonable pace. If the average stays flat for two or three weeks, add 100–200 kcal a day. If it climbs faster, take the same amount away.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="calc" id="calc">
+    <h2>Your starting numbers</h2>
+    <p>An estimate to start from, built from the same rules as the story. The fields open with example values, so enter your own.</p>
+    <div class="calc-grid">
+      <form class="card" id="form" autocomplete="off">
+        <div class="fld wide">Sex
+          <div class="seg" role="radiogroup" aria-label="Sex">
+            <label><input type="radio" name="sex" id="sex-m" value="m" checked><span>Male</span></label>
+            <label><input type="radio" name="sex" id="sex-f" value="f"><span>Female</span></label>
+          </div>
+        </div>
+        <div class="fields">
+          <label class="fld" for="age">Age<input id="age" type="number" inputmode="numeric" min="18" max="90" value="30"></label>
+          <label class="fld" for="height">Height, cm<input id="height" type="number" inputmode="decimal" min="130" max="230" value="178"></label>
+          <label class="fld" for="weight">Weight, kg<input id="weight" type="number" inputmode="decimal" min="35" max="250" step="0.1" value="78"></label>
+        </div>
+        <label class="fld wide" for="act">Daily life outside the gym
+          <select id="act">
+            <option value="1.45">Mostly sitting</option>
+            <option value="1.6" selected>Some walking and standing</option>
+            <option value="1.75">On your feet most of the day</option>
+            <option value="1.9">Physical job</option>
+          </select>
+        </label>
+        <div class="fld wide">Lifting experience
+          <div class="seg" role="radiogroup" aria-label="Lifting experience">
+            <label><input type="radio" name="lv" id="lv-0" value="0"><span>Under 1 year</span></label>
+            <label><input type="radio" name="lv" id="lv-1" value="1" checked><span>1–3 years</span></label>
+            <label><input type="radio" name="lv" id="lv-2" value="2"><span>3+ years</span></label>
+          </div>
+        </div>
+        <div class="fld wide">Goal
+          <div class="seg" role="radiogroup" aria-label="Goal">
+            <label><input type="radio" name="goal" id="goal-cut" value="cut"><span>Lose fat</span></label>
+            <label><input type="radio" name="goal" id="goal-keep" value="keep"><span>Recomp</span></label>
+            <label><input type="radio" name="goal" id="goal-gain" value="gain" checked><span>Build</span></label>
+          </div>
+        </div>
+      </form>
+
+      <div class="card" id="out" aria-live="polite">
+        <div class="out-top">
+          <div class="big"><span id="o-kcal">–</span><small>kcal a day</small></div>
+          <p class="sub" id="o-delta"></p>
+        </div>
+        <div class="bar" aria-hidden="true"><i class="bp" id="b-p"></i><i class="bf" id="b-f"></i><i class="bc" id="b-c"></i></div>
+        <div class="macros">
+          <div class="macro" style="--mc: var(--protein)"><b>Protein</b><div class="g"><span id="o-p">–</span><small>g</small></div><p class="sub" id="o-pn"></p></div>
+          <div class="macro" style="--mc: var(--fat)"><b>Fat</b><div class="g"><span id="o-f">–</span><small>g</small></div><p class="sub" id="o-fn"></p></div>
+          <div class="macro" style="--mc: var(--carb)"><b>Carbs</b><div class="g"><span id="o-c">–</span><small>g</small></div><p class="sub" id="o-cn"></p></div>
+        </div>
+        <dl class="rows">
+          <div><dt>Estimated maintenance</dt><dd id="o-m">–</dd></div>
+          <div><dt>Protein per meal, 4 meals</dt><dd id="o-meal">–</dd></div>
+          <div><dt>Weekly weight target</dt><dd id="o-rate">–</dd></div>
+        </dl>
+        <p class="sub" id="o-note">Maintenance uses the Mifflin-St Jeor equation and an activity factor. It can be off by a few hundred kcal for any one person, so treat it as a first guess and adjust from your weekly weight average.</p>
+      </div>
+    </div>
+
+    <div class="more">
+      <div><h3>If you carry a lot of body fat</h3><p>Per-kilogram targets overshoot. Use the weight you are aiming for when you enter your weight for protein.</p></div>
+      <div><h3>Plant-based eating</h3><p>It works. Aim toward the top of the protein range and mix sources, since single plant proteins are a little less efficient gram for gram.</p></div>
+      <div><h3>Supplements</h3><p>Creatine monohydrate, 3–5 g a day, has the strongest evidence. Protein powder is only a convenient way to reach your total.</p></div>
+    </div>
+  </section>
+
+  <section class="sources">
+    <h3>Sources</h3>
+    <ul>
+      <li>Iraki et al. (2019), Sports: nutrition recommendations for bodybuilders in the off-season (surplus, rate of gain, protein, fat, carbohydrate, meals, creatine).</li>
+      <li>Morton et al. (2018), British Journal of Sports Medicine: protein intake and resistance-training gains.</li>
+      <li>Schoenfeld &amp; Aragon (2018), Journal of the International Society of Sports Nutrition: protein per meal and daily distribution.</li>
+      <li>Hector &amp; Phillips (2018), International Journal of Sport Nutrition and Exercise Metabolism: protein during weight loss.</li>
+      <li>Helms, Aragon &amp; Fitschen (2014), Journal of the International Society of Sports Nutrition: rate of weight loss and muscle retention.</li>
+      <li>Mifflin et al. (1990), American Journal of Clinical Nutrition: resting energy expenditure equation.</li>
+    </ul>
+    <p>The diagrams are schematic. They show the shape of each relationship, not measured data, and the weight chart uses example numbers. This page is general education for healthy adults. It is not individual dietary advice, and it does not replace a doctor or dietitian if you are under 18, pregnant, or managing a medical condition or a difficult relationship with food.</p>
+  </section>
+  <div class="end"><a class="back" href="./">← Back to PT App</a><a class="back" href="how-muscle-grows.html">How muscle grows →</a></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage');
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var capEl = document.getElementById('cap');
+  var countEl = document.getElementById('count');
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var mq = window.matchMedia('(max-width: 819px)');
+
+  var w = 0, h = 0, hD = 0, dpr = 1, base = 1;
+  var C = {};
+  var active = -1, fadeStart = 0, queued = false;
+
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function ease(t) { t = clamp(t); return t * t * (3 - 2 * t); }
+  function A(a) { ctx.globalAlpha = base * a; }
+  function disc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, 6.2832); }
+  function F(px, weight, disp) {
+    if (w > 600) px = Math.round(px * 1.18);
+    ctx.font = (weight || 500) + ' ' + px + 'px ' + (disp ? '"Barlow Condensed", "Arial Narrow", sans-serif' : '"Barlow", system-ui, sans-serif');
+  }
+  function T(s, x, y, align, bl, col) { ctx.textAlign = align || 'left'; ctx.textBaseline = bl || 'alphabetic'; ctx.fillStyle = col || C.muted; ctx.fillText(s, x, y); }
+  function setCap(s) { if (capEl.textContent !== s) capEl.textContent = s; }
+  function line(x0, y0, x1, y1) { ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    ['bg', 'ink', 'muted', 'line', 'fill', 'protein', 'carb', 'fat', 'ok'].forEach(function (k) { C[k] = cs.getPropertyValue('--' + k).trim(); });
+  }
+  function box() {
+    var cw = Math.min(w, 640);
+    var ch = Math.min(hD - 92, cw * 0.72), y0 = 56 + (hD - 92 - ch) / 2;
+    return { x0: (w - cw) / 2 + 40, x1: (w + cw) / 2 - 14, y0: y0, y1: y0 + ch };
+  }
+  var seed = 7741;
+  function rnd() { seed = (seed + 0x6D2B79F5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
+  var NOISE = []; for (var ni = 0; ni <= 56; ni++) NOISE.push((rnd() - 0.5) * 0.9);
+
+  /* 1. Energy: intake against expenditure */
+  function sEnergy(q) {
+    var pct = lerp(-15, 12, ease(q));
+    var bh = hD * 0.6, yb = hD * 0.84, bw = Math.min(w * 0.2, 110), gap = Math.min(w * 0.12, 70);
+    var xo = w / 2 - bw - gap / 2, xi = w / 2 + gap / 2, i, y = yb;
+    var seg = [['Resting', 0.65, 0.85], ['Movement', 0.2, 0.6], ['Digesting', 0.1, 0.4], ['Training', 0.05, 0.25]];
+    F(11);
+    for (i = 0; i < seg.length; i++) {
+      var sh = bh * seg[i][1];
+      A(seg[i][2]); ctx.fillStyle = C.ink; ctx.fillRect(xo, y - sh + 1, bw, sh - 1);
+      A(1); T(seg[i][0], xo - 8, y - sh / 2, 'right', 'middle');
+      y -= sh;
+    }
+    var ih = bh * (1 + pct / 100);
+    A(1); ctx.fillStyle = C.carb; ctx.fillRect(xi, yb - Math.min(ih, bh), bw, Math.min(ih, bh));
+    if (ih > bh) { ctx.fillStyle = C.ok; ctx.fillRect(xi, yb - ih, bw, ih - bh); }
+    else { ctx.setLineDash([4, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; ctx.strokeRect(xi + 0.5, yb - bh, bw - 1, bh - ih); ctx.setLineDash([]); }
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; line(xo - 4, yb - bh, xi + bw + 8, yb - bh); ctx.setLineDash([]);
+    F(11); T('maintenance', xi + bw + 12, yb - bh, 'left', 'middle');
+    F(12, 600); T('OUT', xo + bw / 2, yb + 10, 'center', 'top'); T('IN', xi + bw / 2, yb + 10, 'center', 'top');
+    F(22, 700, true); T((pct > 0.5 ? '+' : '') + Math.round(pct) + '%', xi + bw / 2, yb - Math.max(ih, bh) - 10, 'center', 'alphabetic', C.ink);
+    setCap((pct < -3 ? 'Eating below maintenance: growth is harder' : pct <= 3 ? 'Eating at maintenance' : 'Small surplus: growth is paid for') + ' · shares are illustrative');
+  }
+
+  /* 2. Surplus: muscle levels off, fat does not */
+  function sSurplus(q) {
+    var b = box(), i, v;
+    function X(v) { return lerp(b.x0, b.x1, v / 1000); }
+    function Ym(v) { return lerp(b.y1, b.y0, 0.6 * (1 - Math.exp(-v / 180))); }
+    function Yf(v) { return lerp(b.y1, b.y0, 0.95 * Math.max(0, v - 120) / 880); }
+    function path(fn) { ctx.beginPath(); for (i = 0; i <= 100; i++) { v = i * 10; if (i) ctx.lineTo(X(v), fn(v)); else ctx.moveTo(X(v), fn(v)); } }
+    A(0.16); ctx.fillStyle = C.ok; ctx.fillRect(X(250), b.y0, X(500) - X(250), b.y1 - b.y0);
+    A(1); F(11, 600); T('ENOUGH', (X(250) + X(500)) / 2, b.y0 + 8, 'center', 'top', C.ok);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    F(11); [0, 250, 500, 750, 1000].forEach(function (t) { T(t === 0 ? '0' : '+' + t, X(t), b.y1 + 8, t === 1000 ? 'right' : 'center', 'top'); });
+    T('Weekly gain against daily surplus, kcal', b.x0, b.y0 - 18);
+    ctx.lineWidth = 2; ctx.lineJoin = 'round'; path(Ym); ctx.stroke(); path(Yf); ctx.stroke();
+    var sv = Math.round(q * 20) * 50, xr = X(q * 1000);
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, xr, h); ctx.clip();
+    ctx.lineWidth = 3.5; ctx.strokeStyle = C.protein; path(Ym); ctx.stroke(); ctx.strokeStyle = C.fat; path(Yf); ctx.stroke();
+    ctx.restore();
+    ctx.fillStyle = C.protein; disc(xr, Ym(q * 1000), 5.5); ctx.fill(); ctx.fillStyle = C.fat; disc(xr, Yf(q * 1000), 5.5); ctx.fill();
+    F(12, 600); T('Muscle', b.x1, Ym(1000) + 10, 'right', 'top', C.protein); T('Fat', b.x1 - 14, Yf(1000) + 4, 'right', 'top', C.fat);
+    setCap('Surplus +' + sv + ' kcal a day · schematic, not measured data');
+  }
+
+  /* 3. Protein: gains level off around 1.6 g/kg */
+  function sProtein(q) {
+    var b = box(), v = lerp(0.8, 2.6, ease(q));
+    function X(v) { return lerp(b.x0, b.x1, (v - 0.6) / 2.2); }
+    function Y(v) { return lerp(b.y1, b.y0, v < 1.6 ? lerp(0.12, 0.72, (v - 0.6)) : 0.72); }
+    function path(to) { ctx.beginPath(); ctx.moveTo(X(0.6), Y(0.6)); if (to > 1.6) { ctx.lineTo(X(1.6), Y(1.6)); } ctx.lineTo(X(to), Y(to)); }
+    A(0.16); ctx.fillStyle = C.ok; ctx.fillRect(X(1.6), b.y0, X(2.2) - X(1.6), b.y1 - b.y0);
+    A(1); F(11, 600); T('1.6–2.2', (X(1.6) + X(2.2)) / 2, b.y0 + 8, 'center', 'top', C.ok);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    F(11); [0.8, 1.6, 2.2].forEach(function (t) { T(t.toFixed(1), X(t), b.y1 + 8, 'center', 'top'); ctx.strokeStyle = C.line; line(X(t), b.y1, X(t), b.y1 + 5); });
+    T('Extra muscle from training, by protein in g/kg a day', b.x0, b.y0 - 18);
+    T('non-training minimum', X(0.8), b.y1 - 8, 'center', 'alphabetic');
+    ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.lineJoin = 'round'; path(2.8); ctx.stroke();
+    ctx.strokeStyle = C.protein; ctx.lineWidth = 3.5; path(v); ctx.stroke();
+    ctx.fillStyle = C.protein; disc(X(v), Y(v), 6); ctx.fill();
+    F(20, 700, true); T(v.toFixed(1), X(v), Y(v) - 12, 'center', 'alphabetic', C.ink);
+    setCap(v.toFixed(1) + ' g/kg a day: ' + (v < 1.6 ? 'more protein still adds gains' : v <= 2.2 ? 'the range where gains level off' : 'no clear extra benefit') + ' · shape after Morton et al., 2018');
+  }
+
+  /* 4. Meals: four pulses of muscle building across the day */
+  function sMeals(q) {
+    var b = box(), meals = [8, 12.5, 17.5, 21.5], by = hD * 0.66, top = b.y0 + 14, i, t;
+    function X(t) { return lerp(b.x0 - 24, b.x1, (t - 6) / 18); }
+    function val(t) { var s = 0; for (var k = 0; k < 4; k++) { if (t >= meals[k]) { var d = (t - meals[k] - 1.3) / 1.05; s += Math.exp(-d * d) - Math.exp(-(1.3 / 1.05) * (1.3 / 1.05)) * Math.exp(-(t - meals[k])); } } return Math.max(0, s); }
+    function path() { ctx.beginPath(); ctx.moveTo(X(6), by); for (i = 0; i <= 180; i++) { t = 6 + i / 10; ctx.lineTo(X(t), by - val(t) * (by - top) * 0.85); } }
+    A(1); F(11); T('Muscle building through the day', X(6), b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(X(6), by, X(24), by);
+    ctx.lineWidth = 2; ctx.lineJoin = 'round'; path(); ctx.stroke();
+    var tr = lerp(6, 24, ease(q)), n = 0;
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, X(tr), h); ctx.clip();
+    A(0.18); ctx.fillStyle = C.ok; path(); ctx.lineTo(X(24), by); ctx.closePath(); ctx.fill();
+    A(1); ctx.strokeStyle = C.ok; ctx.lineWidth = 3.5; path(); ctx.stroke();
+    ctx.restore();
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; line(X(16), by, X(16), top + 6); ctx.setLineDash([]);
+    F(11, 600); T('TRAIN', X(16), top, 'center', 'alphabetic');
+    for (i = 0; i < 4; i++) {
+      var hit = tr >= meals[i]; if (hit) n++;
+      ctx.fillStyle = C.bg; disc(X(meals[i]), by, 6.5); ctx.fill();
+      if (hit) { ctx.fillStyle = C.protein; disc(X(meals[i]), by, 6.5); ctx.fill(); }
+      ctx.strokeStyle = hit ? C.protein : C.muted; ctx.lineWidth = 2; disc(X(meals[i]), by, 6.5); ctx.stroke();
+      F(11, 600); T('0.4 g/kg', X(meals[i]), by + 14, 'center', 'top', hit ? C.ink : C.muted);
+    }
+    F(11); [6, 12, 18, 24].forEach(function (hr) { T((hr < 10 ? '0' : '') + hr + ':00', X(hr), by + 36, hr === 6 ? 'left' : hr === 24 ? 'right' : 'center', 'top'); });
+    setCap(n + ' of 4 meals · ' + (n * 0.4).toFixed(1) + ' g/kg of protein so far · schematic');
+  }
+
+  /* 5. Fuel: protein first, then fat, carbohydrate takes the rest */
+  function sMacros(q) {
+    var cw = Math.min(w, 600), x0 = (w - cw) / 2 + 2, x1 = (w + cw) / 2 - 2, bh = Math.min(hD * 0.2, 70), y = hD * 0.5 - bh / 2;
+    var parts = [['PROTEIN', 0.2, C.protein, '144 g', '1.8 g/kg', clamp(q / 0.3)], ['FAT', 0.2, C.fat, '64 g', '0.8 g/kg', clamp((q - 0.3) / 0.25)], ['CARBS', 0.6, C.carb, '437 g', 'the rest', clamp((q - 0.55) / 0.4)]];
+    var x = x0, i;
+    A(1); F(11); T('2,900 kcal a day for an 80 kg lifter', x0, y - 48);
+    for (i = 0; i < 3; i++) {
+      var pw = (x1 - x0) * parts[i][1], g = ease(parts[i][5]);
+      A(1); ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; ctx.strokeRect(x + 1, y, pw - 2, bh);
+      ctx.fillStyle = parts[i][2]; ctx.fillRect(x + 1, y, (pw - 2) * g, bh);
+      F(11, 600); T(parts[i][0], x + 2, y - 10, 'left', 'alphabetic', g > 0 ? C.ink : C.muted);
+      F(24, 700, true); T(parts[i][3], x + 2, y + bh + 12, 'left', 'top', g > 0.95 ? C.ink : C.muted);
+      F(11); T(parts[i][4], x + 2, y + bh + 44, 'left', 'top');
+      x += pw;
+    }
+    setCap(q < 0.3 ? 'First: protein, 1.8 g per kg' : q < 0.55 ? 'Second: fat, about 0.8 g per kg' : 'Last: carbohydrate fills what is left');
+  }
+
+  /* 6. Your goal: three profiles */
+  function sGoal(q) {
+    var t = q * 2, f = t < 1 ? ease((t - 0.3) / 0.4) : 1 + ease((t - 1.3) / 0.4), k = Math.round(f);
+    var P = [['LOSE FAT', -20, 2.2, -0.7, 'Suits: more body fat than you want'], ['RECOMP', 0, 2.0, 0, 'Suits: new or returning lifters'], ['BUILD', 10, 1.8, 0.35, 'Suits: lean and trained']];
+    function mix(j) { var a = Math.floor(Math.min(f, 1.999)), u = f - a; return lerp(P[a][j], P[a + 1][j], u); }
+    var cw = Math.min(w, 600), x0 = (w - cw) / 2 + 2, x1 = (w + cw) / 2 - 2;
+    var rows = [['ENERGY vs maintenance', -25, 20, mix(1), C.carb, function (v) { return (v > 0.5 ? '+' : '') + Math.round(v) + '%'; }, 0],
+                ['PROTEIN per kg a day', 1.4, 2.6, mix(2), C.protein, function (v) { return v.toFixed(1) + ' g'; }, null],
+                ['WEIGHT per week', -1, 0.6, mix(3), C.ok, function (v) { return (v > 0.02 ? '+' : '') + (Math.abs(v) < 0.02 ? '0' : v.toFixed(2)) + '%'; }, 0]];
+    A(1); F(34, 700, true); T(P[k][0], x0, 22, 'left', 'top', C.ink);
+    for (var i = 0; i < 3; i++) {
+      var r = rows[i], y = hD * (0.44 + i * 0.2), X = function (v) { return lerp(x0 + 6, x1 - 6, (v - r[1]) / (r[2] - r[1])); };
+      F(11, 600); T(r[0], x0, y - 14);
+      F(20, 700, true); T(r[5](r[3]), x1, y - 12, 'right', 'alphabetic', C.ink);
+      ctx.strokeStyle = C.line; ctx.lineWidth = 3; ctx.lineCap = 'round'; line(x0 + 6, y, x1 - 6, y);
+      if (r[6] !== null) { ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5; line(X(r[6]), y - 7, X(r[6]), y + 7); }
+      ctx.fillStyle = r[4]; disc(X(r[3]), y, 8); ctx.fill();
+      ctx.strokeStyle = C.bg; ctx.lineWidth = 2; disc(X(r[3]), y, 8); ctx.stroke();
+    }
+    setCap(P[k][4]);
+  }
+
+  /* 7. Adjust: follow the weekly average */
+  function sAdjust(q) {
+    var b = box(), D = 56 * ease(q), i;
+    function X(d) { return lerp(b.x0, b.x1, d / 56); }
+    function Y(kg) { return lerp(b.y1, b.y0 + 6, (kg - 79.2) / 3.2); }
+    function tr(d) { return d < 21 ? 80 : 80 + 0.3 * (d - 21) / 7; }
+    A(0.18); ctx.fillStyle = C.ok; ctx.beginPath(); ctx.moveTo(X(21), Y(80)); ctx.lineTo(X(56), Y(82)); ctx.lineTo(X(56), Y(81)); ctx.closePath(); ctx.fill();
+    A(1); F(11, 600); T('TARGET PACE', X(56), Y(82) - 6, 'right', 'alphabetic', C.ok);
+    F(11); T('Body weight, kg: daily readings and weekly average', b.x0, b.y0 - 18);
+    [80, 81, 82].forEach(function (kg) { ctx.strokeStyle = C.line; ctx.lineWidth = 1; line(b.x0, Y(kg), b.x1, Y(kg)); T(String(kg), b.x0 - 8, Y(kg), 'right', 'middle'); });
+    [0, 2, 4, 6, 8].forEach(function (wk) { T('wk ' + wk, X(wk * 7), b.y1 + 8, wk === 0 ? 'left' : wk === 8 ? 'right' : 'center', 'top'); });
+    ctx.setLineDash([4, 4]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; line(X(21), b.y1, X(21), Y(82.1)); ctx.setLineDash([]);
+    F(11, 600); T('+150 kcal', X(21) + 6, Y(82.1) + 2, 'left', 'top', D >= 21 ? C.ink : C.muted);
+    for (i = 0; i <= 56; i++) { A(i <= D ? 0.75 : 0.22); ctx.fillStyle = C.muted; disc(X(i), Y(tr(i) + NOISE[i]), 2.4); ctx.fill(); }
+    A(1); ctx.strokeStyle = C.ink; ctx.lineWidth = 3.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(X(0), Y(80)); if (D > 21) ctx.lineTo(X(21), Y(80)); ctx.lineTo(X(D), Y(tr(D))); ctx.stroke();
+    ctx.fillStyle = C.ink; disc(X(D), Y(tr(D)), 5.5); ctx.fill();
+    var wk = Math.min(8, Math.floor(D / 7) + 1);
+    setCap('Week ' + wk + ': ' + (D < 21 ? 'weekly average is flat, so add a little food' : 'average rising about 0.3 kg a week') + ' · example data');
+  }
+
+  var SCENES = [sEnergy, sSurplus, sProtein, sMeals, sMacros, sGoal, sAdjust];
+
+  function size() {
+    var r = stage.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; hD = h - 44;
+    cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr));
+  }
+  function render(now) {
+    queued = false;
+    if (w < 2) return;
+    var H = window.innerHeight, sh = stage.getBoundingClientRect().height;
+    var focal = mq.matches ? sh + (H - sh) * 0.75 : H * 0.62;
+    var rects = steps.map(function (s) { return s.getBoundingClientRect(); });
+    var idx = 0, i, p;
+    for (i = 0; i < rects.length; i++) if (rects[i].top <= focal) idx = i;
+    if (idx === 0) {
+      var sy = window.scrollY || window.pageYOffset || 0;
+      p = sy / Math.max(1, rects[1].top + sy - focal);
+    } else {
+      p = (focal - rects[idx].top) / Math.max(1, rects[idx].height);
+    }
+    var q = clamp(p / 0.72);
+    if (idx !== active) {
+      fadeStart = active === -1 ? -1e9 : (now || performance.now());
+      active = idx;
+      countEl.textContent = (idx + 1) + ' / ' + SCENES.length;
+    }
+    base = clamp(((now || performance.now()) - fadeStart) / 260);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    ctx.save();
+    SCENES[idx](q);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    if (base < 1) queue();
+  }
+  function queue() { if (!queued) { queued = true; requestAnimationFrame(render); } }
+
+  window.addEventListener('scroll', queue, { passive: true });
+  window.addEventListener('resize', function () { size(); queue(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { size(); queue(); }).observe(stage);
+  var dm = window.matchMedia('(prefers-color-scheme: dark)');
+  var onTheme = function () { readColors(); queue(); };
+  if (dm.addEventListener) dm.addEventListener('change', onTheme);
+  new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  readColors(); size(); queue();
+
+  /* ---------- calculator ---------- */
+  var $ = function (id) { return document.getElementById(id); };
+  var form = $('form'), KEY = 'pt-nutrition-inputs';
+  function radio(name) { var el = form.querySelector('input[name="' + name + '"]:checked'); return el ? el.value : ''; }
+  function r5(v) { return Math.round(v / 5) * 5; }
+  function nf(v) { return String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ','); }
+  // Pure: inputs in, targets out.
+  function targets(i) {
+    var bmr = 10 * i.weight + 6.25 * i.height - 5 * i.age + (i.sex === 'f' ? -161 : 5);
+    var tdee = bmr * i.act;
+    var adj = i.goal === 'gain' ? [0.15, 0.10, 0.05][i.lv] : i.goal === 'cut' ? -0.20 : 0;
+    var kcal = Math.max(tdee * (1 + adj), i.goal === 'cut' ? bmr : 0);
+    kcal = Math.round(kcal / 50) * 50;
+    var pk = i.goal === 'gain' ? 1.8 : i.goal === 'cut' ? 2.2 : 2.0, fk = i.goal === 'cut' ? 0.7 : 0.8;
+    var p = r5(pk * i.weight), f = r5(fk * i.weight);
+    var c = Math.max(0, r5((kcal - p * 4 - f * 9) / 4));
+    return { maint: Math.round(tdee / 50) * 50, kcal: kcal, adj: adj, p: p, f: f, c: c, pk: pk, fk: fk };
+  }
+  function read() {
+    return { sex: radio('sex'), age: +$('age').value, height: +$('height').value, weight: +$('weight').value,
+             act: +$('act').value, lv: +radio('lv'), goal: radio('goal') };
+  }
+  function update() {
+    var i = read();
+    var ok = i.age >= 18 && i.age <= 90 && i.height >= 130 && i.height <= 230 && i.weight >= 35 && i.weight <= 250;
+    var ids = ['o-kcal', 'o-p', 'o-f', 'o-c', 'o-m', 'o-meal', 'o-rate'];
+    if (!ok) {
+      ids.forEach(function (id) { $(id).textContent = '–'; });
+      ['o-pn', 'o-fn', 'o-cn'].forEach(function (id) { $(id).textContent = ''; });
+      ['b-p', 'b-f', 'b-c'].forEach(function (id) { $(id).style.width = '0'; });
+      $('o-delta').textContent = i.age && i.age < 18 ? 'These estimates are for adults aged 18 and over.' : 'Enter age, height in cm and weight in kg to see your numbers.';
+      return;
+    }
+    var t = targets(i), tot = t.p * 4 + t.f * 9 + t.c * 4 || 1;
+    $('o-kcal').textContent = nf(t.kcal);
+    var diff = t.kcal - t.maint;
+    $('o-delta').textContent = i.goal === 'keep' ? 'At estimated maintenance' : (diff >= 0 ? '+' : '−') + nf(Math.abs(diff)) + ' kcal against maintenance';
+    $('o-p').textContent = t.p; $('o-f').textContent = t.f; $('o-c').textContent = t.c;
+    $('o-pn').textContent = t.pk.toFixed(1) + ' g/kg'; $('o-fn').textContent = t.fk.toFixed(1) + ' g/kg';
+    $('o-cn').textContent = (t.c / i.weight).toFixed(1) + ' g/kg, the rest';
+    $('b-p').style.width = (t.p * 4 / tot * 100) + '%'; $('b-f').style.width = (t.f * 9 / tot * 100) + '%'; $('b-c').style.width = (t.c * 4 / tot * 100) + '%';
+    $('o-m').textContent = nf(t.maint) + ' kcal';
+    $('o-meal').textContent = 'about ' + r5(t.p / 4) + ' g';
+    var kg = function (pc) { return (i.weight * pc / 100).toFixed(1); };
+    $('o-rate').textContent = i.goal === 'gain' ? (i.lv === 2 ? 'up to +' + kg(0.25) + ' kg' : '+' + kg(0.25) + ' to +' + kg(0.5) + ' kg')
+      : i.goal === 'cut' ? '−' + kg(0.5) + ' to −' + kg(1) + ' kg' : 'steady, within ±' + kg(0.25) + ' kg';
+    try { localStorage.setItem(KEY, JSON.stringify(i)); } catch (e) { /* storage unavailable */ }
+  }
+  try {
+    var sv = JSON.parse(localStorage.getItem(KEY) || 'null');
+    if (sv) {
+      ['age', 'height', 'weight'].forEach(function (k) { if (typeof sv[k] === 'number' && sv[k] > 0) $(k).value = sv[k]; });
+      if (sv.act) $('act').value = String(sv.act);
+      [['sex', sv.sex], ['lv', sv.lv], ['goal', sv.goal]].forEach(function (p) {
+        var el = form.querySelector('input[name="' + p[0] + '"][value="' + p[1] + '"]'); if (el) el.checked = true;
+      });
+    }
+  } catch (e) { /* ignore */ }
+  form.addEventListener('input', update);
+  form.addEventListener('change', update);
+  form.addEventListener('submit', function (e) { e.preventDefault(); });
+  window.__targets = targets;
+  update();
+})();
+</script>
+</body>
+</html>
