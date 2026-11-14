@@ -1,0 +1,534 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>How Muscle Grows · PT App</title>
+<meta name="description" content="A scroll-through explainer on how training makes a muscle bigger, with the numbers behind PT App.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<style>
+/* Layout: text steps scroll past one sticky drawing stage (right column on desktop, top band on phones).
+   Colour carries meaning: red is muscle tissue, amber is the signal, teal is newly built protein. */
+:root {
+  --bg: #f3f3f1; --ink: #0b0b0b; --muted: #666663; --line: #e1e1dd;
+  --muscle: #d8432e; --muscle-soft: #f3c6be; --signal: #a2600a; --build: #167a48;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927;
+    --muscle: #e0503c; --muscle-soft: #4a1d16; --signal: #e6a94a; --build: #5fd08f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927;
+  --muscle: #e0503c; --muscle-soft: #4a1d16; --signal: #e6a94a; --build: #5fd08f;
+  color-scheme: dark;
+}
+html { padding-top: env(safe-area-inset-top, 0px); }
+*, *::before { box-sizing: border-box; }
+[hidden] { display: none !important; }
+.back {
+  align-self: flex-start;
+  display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px;
+  border: 1.5px solid var(--line); border-radius: 12px;
+  color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none;
+}
+.back:hover { border-color: var(--ink); }
+.back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.short + .sources { padding-bottom: 24px; }
+.end { padding-block: 0 80px; display: flex; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.6 var(--font-body);
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+.wrap {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.scrolly {
+  display: grid;
+  grid-template-columns: minmax(0, 30rem) minmax(0, 1fr);
+  column-gap: 56px;
+}
+.stage {
+  grid-column: 2; grid-row: 1;
+  position: sticky;
+  top: env(safe-area-inset-top, 0px);
+  align-self: start;
+  height: 100vh; height: 100svh;
+  min-width: 0;
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap, .count {
+  position: absolute; margin: 0;
+  font: 500 12px/1.4 var(--font-mono);
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+.cap { left: 0; right: 0; bottom: 16px; }
+.count { right: 0; top: 16px; }
+.steps { grid-column: 1; grid-row: 1; min-width: 0; }
+.step {
+  min-height: 100vh;
+  box-sizing: border-box;
+  display: flex; flex-direction: column; justify-content: center; gap: 14px;
+  padding-block: 12vh;
+}
+.step p { margin: 0; max-width: 34em; }
+.eyebrow {
+  font: 500 12px/1 var(--font-mono);
+  letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--muted);
+}
+h1, h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  text-wrap: balance;
+  letter-spacing: 0.005em;
+}
+h1 { font-size: clamp(3.2rem, 8vw, 6.4rem); line-height: 0.9; }
+h2 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 0.98; }
+.lede { font-size: 1.15rem; }
+.k-muscle { color: var(--muscle); font-weight: 600; }
+.k-signal { color: var(--signal); font-weight: 600; }
+.k-build { color: var(--build); font-weight: 600; }
+.scrollcue { font: 500 12px/1 var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+
+.short { border-top: 1px solid var(--line); padding-block: 72px 40px; }
+.short h2 { margin-bottom: 28px; }
+.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 28px 40px; margin: 0; }
+.spec div { border-top: 2px solid var(--ink); padding-top: 12px; min-width: 0; }
+.spec dt { font: 500 12px/1.3 var(--font-mono); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.spec .v { font: 700 2.6rem/1 var(--font-display); margin: 8px 0 6px; font-variant-numeric: tabular-nums; }
+.spec .v small { font: 500 0.95rem/1 var(--font-mono); color: var(--muted); margin-left: 6px; }
+.spec dd { margin: 0; }
+.spec .n { color: var(--muted); font-size: 0.95rem; }
+.sources { padding-block: 24px 80px; color: var(--muted); font-size: 0.9rem; }
+.sources h3 { font: 500 12px/1 var(--font-mono); letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px; }
+.sources ul { margin: 0 0 14px; padding-left: 1.1em; display: grid; gap: 4px; max-width: 60em; }
+.sources p { margin: 0; max-width: 60em; }
+
+@media (max-width: 819px) {
+  body { font-size: 16px; }
+  .scrolly { display: block; }
+  .stage {
+    height: 44vh; height: 44svh;
+    z-index: 2;
+    background: var(--bg);
+    border-bottom: 1px solid var(--line);
+  }
+  .cap { bottom: 10px; }
+  .count { top: 10px; }
+  .step { min-height: 85vh; justify-content: flex-start; padding-block: 36px 60px; }
+  .short { padding-block: 48px 32px; }
+}
+</style>
+
+<div class="wrap">
+  <div class="scrolly" id="scrolly">
+    <div class="stage" id="stage">
+      <canvas id="cv" role="img" aria-label="Animated diagram that follows the text: muscle structure, tension, fibre recruitment, protein synthesis, fibre growth and training dose."></canvas>
+      <p class="count" id="count">1 / 7</p>
+      <p class="cap" id="cap">Whole muscle, cut across</p>
+    </div>
+
+    <div class="steps">
+      <section class="step">
+        <a class="back" href="./">← PT App</a>
+        <span class="eyebrow">Structure</span>
+        <h1>How a muscle gets bigger</h1>
+        <p class="lede">Training barely changes how many muscle fibres you have. Growth comes from making each one thicker.</p>
+        <p>A muscle is bundles inside bundles. Fascicles hold fibres, and each fibre is one long cell packed with <span class="k-muscle">myofibrils</span>, the protein strands that do the contracting. Keep scrolling to zoom into one.</p>
+        <span class="scrollcue">Scroll ↓</span>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Signal</span>
+        <h2>Tension is the trigger</h2>
+        <p>When a fibre pulls hard against a load, sensors in and around its contractile strands register the <span class="k-signal">mechanical tension</span>.</p>
+        <p>That switches on mTORC1, the cell's main growth pathway, which tells ribosomes to <span class="k-build">build more contractile protein</span>.</p>
+        <p>The burn, the pump and next-day soreness come along for the ride. Tension is the trigger with the strongest evidence behind it.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Recruitment</span>
+        <h2>Only working fibres grow</h2>
+        <p>Your nervous system recruits fibres in order of size, smallest first. The biggest ones, which also have the most room to grow, join only when effort is high.</p>
+        <p>That happens with a heavy load from the first rep, or in the last hard reps of a lighter set as the early fibres tire. It is why sets of roughly 5 to 30 reps build similar muscle, as long as they end close to failure.</p>
+        <p>A fibre that is never recruited never gets the signal.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Synthesis</span>
+        <h2>The building window</h2>
+        <p>Muscle protein is always being broken down and rebuilt. After a hard session, <span class="k-build">building speeds up</span>. In one classic study it was up 50% at 4 hours, 109% at 24 hours, and almost back to resting level by 36.</p>
+        <p>Growth is the small surplus left when building beats breakdown. Dietary protein supplies the raw material, and the benefit levels off at around 1.6 g per kg of body weight a day.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Growth</span>
+        <h2>The fibre thickens</h2>
+        <p>The surplus becomes <span class="k-build">new myofibrils</span> laid down beside the old ones, so the fibre's cross-section grows.</p>
+        <p>As it grows, <span class="k-signal">satellite cells</span> resting on the fibre's surface fuse into it and donate extra nuclei to help run the bigger cell.</p>
+        <p>Each session adds very little. Measurable size takes weeks. Early strength jumps are mostly your nervous system getting better at the lift.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Dose</span>
+        <h2>More hard sets, more growth</h2>
+        <p>Weekly volume matters. A pooled analysis of training studies found that muscles given 10 or more sets a week grew nearly twice as much as those given fewer than 5.</p>
+        <p>The returns diminish as volume climbs, and sets only count if they are hard enough to recruit the big fibres.</p>
+      </section>
+
+      <section class="step">
+        <span class="eyebrow">Repeat</span>
+        <h2>Then do it again, slightly harder</h2>
+        <p>A fibre adapts to the tension it meets. Once a load stops being hard, it stops being a strong signal.</p>
+        <p>So add a rep or a little weight when you can, sleep enough for the building to happen, and eat enough to pay for it. The loop is simple. The size comes from running it for months.</p>
+      </section>
+    </div>
+  </div>
+
+  <section class="short">
+    <h2>The short version</h2>
+    <dl class="spec">
+      <div><dt>Effort</dt><dd class="v">0–3<small>reps from failure</small></dd><dd class="n">Hard enough to recruit the biggest fibres.</dd></div>
+      <div><dt>Volume</dt><dd class="v">10+<small>sets / muscle / week</small></dd><dd class="n">Spread over two or more sessions.</dd></div>
+      <div><dt>Load</dt><dd class="v">5–30<small>reps per set</small></dd><dd class="n">Any weight in that range works if the set is hard.</dd></div>
+      <div><dt>Protein</dt><dd class="v">1.6<small>g / kg / day</small></dd><dd class="n">Where the measured benefit levels off.</dd></div>
+      <div><dt>Progression</dt><dd class="v">+1<small>rep or small load step</small></dd><dd class="n">Whenever the current target gets comfortable.</dd></div>
+      <div><dt>Recovery</dt><dd class="v">7–9<small>hours of sleep</small></dd><dd class="n">Plus enough total food to fund the building.</dd></div>
+    </dl>
+  </section>
+
+  <section class="sources">
+    <h3>Sources</h3>
+    <ul>
+      <li>MacDougall et al. (1995), Canadian Journal of Applied Physiology: time course of muscle protein synthesis after heavy resistance exercise.</li>
+      <li>Schoenfeld, Ogborn &amp; Krieger (2017), Journal of Sports Sciences: weekly set volume and gains in muscle mass.</li>
+      <li>Schoenfeld et al. (2017), Journal of Strength and Conditioning Research: low-load versus high-load training.</li>
+      <li>Morton et al. (2018), British Journal of Sports Medicine: protein intake and resistance-training gains.</li>
+      <li>Damas et al. (2018), European Journal of Applied Physiology: muscle damage, protein synthesis and hypertrophy.</li>
+    </ul>
+    <p>The two charts plot published figures. The structure, recruitment, fibre and loop animations are simplified illustrations, and their percentages are not measurements. This page is general education, not individual medical advice.</p>
+  </section>
+  <div class="end"><a class="back" href="./">← Back to PT App</a></div>
+</div>
+
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage');
+  var cv = document.getElementById('cv');
+  var ctx = cv.getContext('2d');
+  var capEl = document.getElementById('cap');
+  var countEl = document.getElementById('count');
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var mq = window.matchMedia('(max-width: 819px)');
+
+  var w = 0, h = 0, hD = 0, dpr = 1, base = 1;
+  var C = {};
+  var active = -1, fadeStart = 0, queued = false;
+
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function ease(t) { t = clamp(t); return t * t * (3 - 2 * t); }
+  function A(a) { ctx.globalAlpha = base * a; }
+  function disc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, 6.2832); }
+  function mono(px, weight) { if (w > 600) px += 2; ctx.font = (weight || 500) + ' ' + px + 'px "Barlow", system-ui, sans-serif'; }
+  function setCap(s) { if (capEl.textContent !== s) capEl.textContent = s; }
+
+  function readColors() {
+    var cs = getComputedStyle(document.documentElement);
+    ['bg', 'ink', 'muted', 'line', 'muscle', 'muscle-soft', 'signal', 'build'].forEach(function (k) {
+      C[k] = cs.getPropertyValue('--' + k).trim();
+    });
+  }
+  function hexPts(n) {
+    var pts = [];
+    for (var q = -n; q <= n; q++) {
+      for (var r = Math.max(-n, -q - n); r <= Math.min(n, -q + n); r++) {
+        pts.push([q + r / 2, r * 0.8660254]);
+      }
+    }
+    return pts;
+  }
+  var HEX1 = hexPts(1), HEX2 = hexPts(2), HEX3 = hexPts(3), HEX4 = hexPts(4);
+  var seed = 20261114;
+  function rnd() { seed = (seed + 0x6D2B79F5) | 0; var t = Math.imul(seed ^ (seed >>> 15), 1 | seed); t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t; return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }
+  var THRESH = HEX4.map(function () { return rnd(); });
+
+  /* 1. Structure: zoom from whole muscle to myofibrils */
+  function sStructure(q) {
+    var R = Math.min(w, hD) * 0.4, cx = w / 2, cy = hD / 2;
+    var s = Math.exp(Math.log(13) * ease(q));
+    ctx.save();
+    ctx.translate(cx, cy); ctx.scale(s, s);
+    A(1); ctx.strokeStyle = C.line; ctx.lineWidth = 5 / s; disc(0, 0, R * 1.05); ctx.stroke();
+    A(0.35); ctx.fillStyle = C['muscle-soft']; disc(0, 0, R); ctx.fill();
+    A(1); ctx.strokeStyle = C.muscle; ctx.lineWidth = 1.5 / s; disc(0, 0, R); ctx.stroke();
+    var rf = R * 0.29, fr = rf * 0.17, i, j, fx, fy;
+    for (i = 0; i < HEX1.length; i++) {
+      fx = HEX1[i][0] * R * 0.64; fy = HEX1[i][1] * R * 0.64;
+      A(0.7); ctx.fillStyle = C['muscle-soft']; disc(fx, fy, rf); ctx.fill();
+      A(1); ctx.lineWidth = 1 / s; disc(fx, fy, rf); ctx.stroke();
+      ctx.fillStyle = C.muscle;
+      for (j = 0; j < HEX2.length; j++) {
+        disc(fx + HEX2[j][0] * rf * 0.4, fy + HEX2[j][1] * rf * 0.4, fr); ctx.fill();
+      }
+    }
+    var a = clamp((s - 3.5) / 4);
+    if (a > 0) {
+      A(a); ctx.fillStyle = C.bg; disc(0, 0, fr); ctx.fill();
+      A(a * 0.8); ctx.fillStyle = C['muscle-soft']; disc(0, 0, fr); ctx.fill();
+      A(a); ctx.strokeStyle = C.muscle; ctx.lineWidth = 2 / s; disc(0, 0, fr); ctx.stroke();
+      ctx.fillStyle = C.muscle;
+      for (j = 0; j < HEX3.length; j++) { disc(HEX3[j][0] * fr * 0.27, HEX3[j][1] * fr * 0.27, fr * 0.1); ctx.fill(); }
+    }
+    ctx.restore();
+    setCap(q < 0.22 ? 'Whole muscle, cut across' : q < 0.5 ? 'Fascicle: a bundle of fibres' : q < 0.8 ? 'Muscle fibre: one long cell' : 'Myofibrils: the strands that contract');
+  }
+
+  /* 2. Signal: a sarcomere under load, then the signalling chain */
+  function sSignal(q) {
+    var e = ease(q), cx = w / 2;
+    var Wd = Math.min(w * 0.62, 520), hh = Math.min(hD * 0.3, 150), cy = hD * 0.36;
+    var half = Wd / 2 * lerp(1, 0.8, e), La = Wd * 0.34, Lm = Wd * 0.52, i, y;
+    ctx.lineCap = 'round';
+    for (i = 0; i < 6; i++) {
+      y = cy - hh / 2 + i * hh / 5;
+      A(1); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(cx - half, y); ctx.lineTo(cx - half + La, y); ctx.moveTo(cx + half, y); ctx.lineTo(cx + half - La, y); ctx.stroke();
+      A(e); ctx.strokeStyle = C.signal; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx - half, y); ctx.lineTo(cx - half + La, y); ctx.moveTo(cx + half, y); ctx.lineTo(cx + half - La, y); ctx.stroke();
+    }
+    A(1); ctx.strokeStyle = C.muscle; ctx.lineWidth = Math.max(3, hh / 26);
+    for (i = 0; i < 5; i++) {
+      y = cy - hh / 2 + (i + 0.5) * hh / 5;
+      ctx.beginPath(); ctx.moveTo(cx - Lm / 2, y); ctx.lineTo(cx + Lm / 2, y); ctx.stroke();
+    }
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(cx - half, cy - hh / 2 - 8); ctx.lineTo(cx - half, cy + hh / 2 + 8);
+    ctx.moveTo(cx + half, cy - hh / 2 - 8); ctx.lineTo(cx + half, cy + hh / 2 + 8); ctx.stroke();
+    var len = lerp(10, w * 0.12, e);
+    ctx.strokeStyle = C.signal; ctx.fillStyle = C.signal; ctx.lineWidth = 3;
+    [-1, 1].forEach(function (d) {
+      var x0 = cx + d * (half + 10), x1 = x0 + d * len;
+      ctx.beginPath(); ctx.moveTo(x0, cy); ctx.lineTo(x1, cy); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(x1 + d * 8, cy); ctx.lineTo(x1 - d * 2, cy - 7); ctx.lineTo(x1 - d * 2, cy + 7); ctx.closePath(); ctx.fill();
+    });
+    var ny = hD * 0.76, dx = Math.min(w * 0.3, 200), xs = [cx - dx, cx, cx + dx];
+    var prog = lerp(xs[0], xs[2], clamp((e - 0.15) / 0.7));
+    ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(xs[0], ny); ctx.lineTo(xs[2], ny); ctx.stroke();
+    if (e > 0.15) { ctx.strokeStyle = C.signal; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(xs[0], ny); ctx.lineTo(prog, ny); ctx.stroke(); }
+    var names = ['TENSION', 'mTORC1', 'BUILD'], cols = [C.signal, C.signal, C.build];
+    mono(11); ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    for (i = 0; i < 3; i++) {
+      var lit = e > 0.15 && prog >= xs[i] - 0.5;
+      ctx.fillStyle = C.bg; disc(xs[i], ny, 9); ctx.fill();
+      if (lit) { ctx.fillStyle = cols[i]; disc(xs[i], ny, 9); ctx.fill(); }
+      ctx.strokeStyle = lit ? cols[i] : C.muted; ctx.lineWidth = 2; disc(xs[i], ny, 9); ctx.stroke();
+      ctx.fillStyle = lit ? C.ink : C.muted; ctx.fillText(names[i], xs[i], ny + 18);
+    }
+    setCap('Sarcomere under load: tension ' + Math.round(e * 100) + '%');
+  }
+
+  /* 3. Recruitment: fibres switch on as the set gets hard */
+  function sRecruit(q) {
+    var cx = w / 2, cy = hD / 2, sp = Math.min(w, hD) * 0.092, r = sp * 0.42;
+    var f = lerp(0.4, 1, ease(q)), on = 0, i;
+    for (i = 0; i < HEX4.length; i++) {
+      var x = cx + HEX4[i][0] * sp, y = cy + HEX4[i][1] * sp, lit = THRESH[i] <= f, big = THRESH[i] > 0.7;
+      A(1);
+      if (lit) {
+        on++;
+        ctx.fillStyle = C.muscle; disc(x, y, r); ctx.fill();
+        if (big) { ctx.strokeStyle = C.signal; ctx.lineWidth = 2.5; disc(x, y, r + 1.5); ctx.stroke(); }
+      } else {
+        ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; disc(x, y, r); ctx.stroke();
+      }
+    }
+    var rep = Math.min(10, 1 + Math.floor(q * 10));
+    setCap('Rep ' + rep + ' of 10 · ' + Math.round(on / HEX4.length * 100) + '% of fibres working · amber ring = big fibre (illustrative)');
+  }
+
+  /* 4. Synthesis: MacDougall 1995 time course */
+  function sSynthesis(q) {
+    var cwid = Math.min(w, 640), x0 = (w - cwid) / 2 + 44, x1 = (w + cwid) / 2 - 16, y0 = 52, y1 = hD - 34;
+    function X(v) { return lerp(x0, x1, v / 40); }
+    function Y(v) { return lerp(y1, y0, (v + 10) / 135); }
+    var pts = [[0, 0], [4, 50], [24, 109], [36, 14]], i;
+    A(1); mono(11); ctx.textBaseline = 'middle';
+    [0, 50, 100].forEach(function (v) {
+      ctx.strokeStyle = C.line; ctx.lineWidth = v === 0 ? 1.5 : 1;
+      ctx.beginPath(); ctx.moveTo(x0, Y(v)); ctx.lineTo(x1, Y(v)); ctx.stroke();
+      ctx.fillStyle = C.muted; ctx.textAlign = 'right'; ctx.fillText(v === 0 ? 'rest' : '+' + v + '%', x0 - 8, Y(v));
+    });
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    [0, 4, 24, 36].forEach(function (v) { ctx.fillStyle = C.muted; ctx.fillText(v + ' h', X(v), y1 + 8); });
+    ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic'; ctx.fillText('Muscle protein synthesis after one session', x0, y0 - 14);
+    function path() { ctx.beginPath(); ctx.moveTo(X(0), Y(0)); for (i = 1; i < pts.length; i++) ctx.lineTo(X(pts[i][0]), Y(pts[i][1])); }
+    ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.lineJoin = 'round'; path(); ctx.stroke();
+    var xr = X(40 * ease(q));
+    ctx.save();
+    ctx.beginPath(); ctx.rect(0, 0, xr, h); ctx.clip();
+    A(0.18); ctx.fillStyle = C.build; path(); ctx.lineTo(X(36), Y(0)); ctx.closePath(); ctx.fill();
+    A(1); ctx.strokeStyle = C.build; ctx.lineWidth = 3; path(); ctx.stroke();
+    ctx.restore();
+    mono(12, 500); ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+    for (i = 1; i < pts.length; i++) {
+      var px = X(pts[i][0]), py = Y(pts[i][1]), hit = xr >= px;
+      ctx.fillStyle = C.bg; disc(px, py, 5); ctx.fill();
+      ctx.strokeStyle = hit ? C.build : C.muted; ctx.lineWidth = 2; disc(px, py, 5); ctx.stroke();
+      ctx.fillStyle = hit ? C.ink : C.muted; ctx.textAlign = i === 2 ? 'center' : 'left';
+      ctx.fillText('+' + pts[i][1] + '%', px + (i === 1 ? 12 : i === 3 ? 9 : 0), py + (i === 1 ? 18 : i === 3 ? -8 : -12));
+    }
+    setCap('Measured at 4, 24 and 36 hours · MacDougall et al., 1995');
+  }
+
+  /* 5. Growth: myofibrils added, nuclei donated */
+  function sGrowth(q) {
+    var e = ease(q), cx = w / 2, cy = hD / 2, c = Math.min(w, hD) * 0.039;
+    var n0 = 60, count = lerp(n0, 78, e), i;
+    var R0 = c * Math.sqrt(n0) + c * 1.3, Rf = c * Math.sqrt(count) + c * 1.3;
+    A(0.45); ctx.fillStyle = C['muscle-soft']; disc(cx, cy, Rf); ctx.fill();
+    A(1); ctx.strokeStyle = C.muscle; ctx.lineWidth = 2; disc(cx, cy, Rf); ctx.stroke();
+    ctx.setLineDash([4, 5]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; disc(cx, cy, R0); ctx.stroke(); ctx.setLineDash([]);
+    for (i = 0; i < Math.ceil(count); i++) {
+      var rr = c * Math.sqrt(i + 0.5), an = i * 2.39996;
+      A(i < Math.floor(count) ? 1 : count - Math.floor(count));
+      ctx.fillStyle = i >= n0 ? C.build : C.muscle;
+      disc(cx + Math.cos(an) * rr, cy + Math.sin(an) * rr, c * 0.6); ctx.fill();
+    }
+    var nuc = [[0.4, 0], [1.9, 0], [3.5, 0], [5.0, 0], [1.1, 0.35], [4.3, 0.7]], nn = 0;
+    for (i = 0; i < nuc.length; i++) {
+      var th = nuc[i][1], t = th === 0 ? 1 : ease((e - th) / 0.2);
+      var rad = lerp(Rf + c * 1.6, Rf - c * 0.1, t);
+      if (t >= 1) nn++;
+      A(1); ctx.fillStyle = th === 0 ? C.ink : C.signal;
+      disc(cx + Math.cos(nuc[i][0]) * rad, cy + Math.sin(nuc[i][0]) * rad, c * 0.5); ctx.fill();
+    }
+    setCap('Cross-section +' + Math.round((count / n0 - 1) * 100) + '% · ' + nn + ' nuclei · teal = new myofibrils (illustrative)');
+  }
+
+  /* 6. Dose: Schoenfeld, Ogborn & Krieger 2017 */
+  function sDose(q) {
+    var cwid = Math.min(w, 560), x0 = (w - cwid) / 2 + 8, x1 = (w + cwid) / 2 - 8, y0 = 72, y1 = hD - 40;
+    var vals = [5.4, 6.6, 9.8], labs = ['< 5 sets', '5–9 sets', '10+ sets'], bw = (x1 - x0) / 3, i;
+    A(1); mono(11); ctx.fillStyle = C.muted; ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+    ctx.fillText('Muscle gain by weekly sets per muscle', x0, y0 - 30);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(x0, y1); ctx.lineTo(x1, y1); ctx.stroke();
+    ctx.textAlign = 'center';
+    for (i = 0; i < 3; i++) {
+      var bx = x0 + bw * i + bw * 0.18, ww = bw * 0.64, full = (y1 - y0) * vals[i] / 11;
+      var g = ease((q - i * 0.18) / 0.55);
+      A(1); ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; ctx.strokeRect(bx, y1 - full, ww, full);
+      ctx.fillStyle = C.muscle; ctx.fillRect(bx, y1 - full * g, ww, full * g);
+      mono(11); ctx.fillStyle = C.muted; ctx.textBaseline = 'top'; ctx.fillText(labs[i], bx + ww / 2, y1 + 10);
+      mono(14, 500); ctx.fillStyle = g > 0.95 ? C.ink : C.muted; ctx.textBaseline = 'alphabetic'; ctx.fillText('+' + vals[i] + '%', bx + ww / 2, y1 - full - 8);
+    }
+    setCap('Average gain over the study periods · Schoenfeld, Ogborn & Krieger, 2017');
+  }
+
+  /* 7. Repeat: the loop */
+  function sLoop(q) {
+    var cx = w / 2, cy = hD / 2, Rr = Math.min(w, hD) * 0.31, turns = q * 2, i;
+    var names = ['TRAIN', 'SIGNAL', 'BUILD', 'RECOVER'], cols = [C.muscle, C.signal, C.build, C.muted];
+    A(1); ctx.strokeStyle = C.line; ctx.lineWidth = 2; disc(cx, cy, Rr); ctx.stroke();
+    var a0 = -Math.PI / 2, a1 = a0 + (turns % 1) * 6.2832;
+    if (turns >= 1) { A(0.35); ctx.strokeStyle = C.muscle; ctx.lineWidth = 4; disc(cx, cy, Rr); ctx.stroke(); }
+    A(1); ctx.strokeStyle = C.muscle; ctx.lineWidth = 4; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.arc(cx, cy, Rr, a0, turns >= 2 ? a0 + 6.2832 : a1); ctx.stroke();
+    var r0 = Rr * 0.34, rg = r0 * (1 + 0.3 * q);
+    ctx.fillStyle = C.muscle; disc(cx, cy, rg); ctx.fill();
+    ctx.setLineDash([4, 5]); ctx.strokeStyle = C.bg; ctx.lineWidth = 1.5; disc(cx, cy, r0); ctx.stroke(); ctx.setLineDash([]);
+    mono(11);
+    for (i = 0; i < 4; i++) {
+      var an = a0 + i * Math.PI / 2, nx = cx + Math.cos(an) * Rr, ny = cy + Math.sin(an) * Rr;
+      var passed = turns >= i / 4 - 0.001;
+      ctx.fillStyle = C.bg; disc(nx, ny, 8); ctx.fill();
+      if (passed) { ctx.fillStyle = cols[i]; disc(nx, ny, 8); ctx.fill(); }
+      ctx.strokeStyle = passed ? cols[i] : C.muted; ctx.lineWidth = 2; disc(nx, ny, 8); ctx.stroke();
+      ctx.fillStyle = passed ? C.ink : C.muted;
+      if (i === 0) { ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic'; ctx.fillText(names[i], nx, ny - 16); }
+      else if (i === 2) { ctx.textAlign = 'center'; ctx.textBaseline = 'top'; ctx.fillText(names[i], nx, ny + 16); }
+      else { ctx.textAlign = i === 1 ? 'left' : 'right'; ctx.textBaseline = 'middle'; ctx.fillText(names[i], nx + (i === 1 ? 15 : -15), ny); }
+    }
+    if (turns < 2) { ctx.fillStyle = C.ink; disc(cx + Math.cos(a1) * Rr, cy + Math.sin(a1) * Rr, 5); ctx.fill(); }
+    setCap('Every lap adds a little. Dashed line = where the fibre started (illustrative)');
+  }
+
+  var SCENES = [sStructure, sSignal, sRecruit, sSynthesis, sGrowth, sDose, sLoop];
+
+  function size() {
+    var r = stage.getBoundingClientRect();
+    dpr = Math.min(window.devicePixelRatio || 1, 2);
+    w = r.width; h = r.height; hD = h - 44;
+    cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr));
+  }
+
+  function render(now) {
+    queued = false;
+    if (w < 2) return;
+    var H = window.innerHeight, sh = stage.getBoundingClientRect().height;
+    var focal = mq.matches ? sh + (H - sh) * 0.75 : H * 0.62;
+    var rects = steps.map(function (s) { return s.getBoundingClientRect(); });
+    var idx = 0, i, p;
+    for (i = 0; i < rects.length; i++) if (rects[i].top <= focal) idx = i;
+    if (idx === 0) {
+      var sy = window.scrollY || window.pageYOffset || 0;
+      p = sy / Math.max(1, rects[1].top + sy - focal);
+    } else {
+      p = (focal - rects[idx].top) / Math.max(1, rects[idx].height);
+    }
+    var q = clamp(p / 0.72);
+    if (idx !== active) {
+      fadeStart = active === -1 ? -1e9 : (now || performance.now());
+      active = idx;
+      countEl.textContent = (idx + 1) + ' / ' + SCENES.length;
+    }
+    base = clamp(((now || performance.now()) - fadeStart) / 260);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    ctx.save();
+    SCENES[idx](q);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+    if (base < 1) queue();
+  }
+  function queue() { if (!queued) { queued = true; requestAnimationFrame(render); } }
+
+  window.addEventListener('scroll', queue, { passive: true });
+  window.addEventListener('resize', function () { size(); queue(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { size(); queue(); }).observe(stage);
+  var dm = window.matchMedia('(prefers-color-scheme: dark)');
+  var onTheme = function () { readColors(); queue(); };
+  if (dm.addEventListener) dm.addEventListener('change', onTheme);
+  new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+
+  readColors(); size(); queue();
+})();
+</script>
+</body>
+</html>

@@ -7,7 +7,8 @@ A hypertrophy training tracker that runs in the phone browser and installs to th
 - Weekly sets per muscle against typical ranges, with indirect volume
 - Body weight, body composition and tape measurements
 - Session history, personal records, export and restore
+- "How muscle grows": a scroll-through explainer (`how-muscle-grows.html`), linked from the Train and Program screens
 
 All data is stored in the browser on the device. Nothing is sent to a server.
 
-No build step: `index.html`, `sw.js` and `manifest.webmanifest` are served as they are.
+No build step: `index.html`, `how-muscle-grows.html`, `sw.js` and `manifest.webmanifest` are served as they are.
