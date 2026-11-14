@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Recovery and Sleep · PT App</title>
+<meta name="description" content="A scroll-through explainer on recovery, sleep, soreness and deloads for muscle growth.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<script>
+/* Always open at the first slide, whatever scroll position the previous screen had. */
+(function () {
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+  function top() { window.scrollTo(0, 0); }
+  top();
+  window.addEventListener('DOMContentLoaded', top);
+  window.addEventListener('load', function () { top(); setTimeout(top, 60); setTimeout(top, 300); });
+  window.addEventListener('pageshow', top);
+})();
+</script>
+<style>
+/* Layout: text steps scroll past one sticky drawing stage (right column on desktop, top band on phones).
+   Colours follow the app: red, blue and amber for the things being compared, green for the target. */
+:root {
+  --bg: #f3f3f1; --surface: #fff; --ink: #0b0b0b; --muted: #666663; --line: #e1e1dd; --fill: #eeeeeb;
+  --a: #d8432e; --b: #2456c9; --c: #b97800; --ok: #167a48; --okbg: #dcf1e5;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+    --a: #e0503c; --b: #5585f5; --c: #e6a94a; --ok: #5fd08f; --okbg: #10301f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+  --a: #e0503c; --b: #5585f5; --c: #e6a94a; --ok: #5fd08f; --okbg: #10301f;
+  color-scheme: dark;
+}
+*, *::before { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--font-body); font-variant-numeric: tabular-nums; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1180px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.scrolly { display: grid; grid-template-columns: minmax(0, 30rem) minmax(0, 1fr); column-gap: 56px; }
+.stage { grid-column: 2; grid-row: 1; position: sticky; top: env(safe-area-inset-top, 0px); align-self: start; height: 100vh; height: 100svh; min-width: 0; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap, .count { position: absolute; margin: 0; font: 500 13px/1.35 var(--font-body); color: var(--muted); }
+.cap { left: 0; right: 0; bottom: 16px; }
+.count { right: 0; top: 16px; }
+.steps { grid-column: 1; grid-row: 1; min-width: 0; }
+.step { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-block: 12vh; }
+.step p { margin: 0; max-width: 34em; }
+.eyebrow { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { margin: 0; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; text-wrap: balance; letter-spacing: 0.005em; }
+h1 { font-size: clamp(3.2rem, 8vw, 6.4rem); line-height: 0.9; }
+h2 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 0.98; }
+.lede { font-size: 1.15rem; }
+.k-a { color: var(--a); font-weight: 600; } .k-b { color: var(--b); font-weight: 600; } .k-c { color: var(--c); font-weight: 600; } .k-ok { color: var(--ok); font-weight: 600; }
+.scrollcue { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+.back { align-self: flex-start; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 12px; color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; }
+.back:hover { border-color: var(--ink); }
+.back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.short { border-top: 1px solid var(--line); padding-block: 72px 40px; }
+.short h2 { margin-bottom: 28px; }
+.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 40px; margin: 0; }
+.spec div { border-top: 2px solid var(--ink); padding-top: 12px; min-width: 0; }
+.spec dt { font: 600 12px/1.3 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.spec .v { font: 700 2.6rem/1 var(--font-display); margin: 8px 0 6px; }
+.spec .v small { font: 600 0.95rem/1 var(--font-body); color: var(--muted); margin-left: 6px; }
+.spec dd { margin: 0; }
+.spec .n { color: var(--muted); font-size: 0.95rem; }
+.sources { padding-block: 24px 24px; color: var(--muted); font-size: 0.9rem; }
+.sources h3 { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px; }
+.sources ul { margin: 0 0 14px; padding-left: 1.1em; display: grid; gap: 4px; max-width: 60em; }
+.sources p { margin: 0; max-width: 60em; }
+.end { padding-block: 0 80px; display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 819px) {
+  body { font-size: 16px; }
+  .scrolly { display: block; }
+  .stage { height: 44vh; height: 44svh; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .cap { bottom: 10px; } .count { top: 10px; }
+  .step { min-height: 85vh; justify-content: flex-start; padding-block: 36px 60px; }
+  .short { padding-block: 48px 32px; }
+}
+</style>
+
+<div class="wrap">
+  <div class="scrolly">
+    <div class="stage" id="stage">
+      <canvas id="cv" role="img" aria-label="Animated diagram that follows the text: recovery after a session, training frequency, soreness, sleep, fatigue and deloads."></canvas>
+      <p class="count" id="count">1 / 6</p>
+      <p class="cap" id="cap">Day after a session</p>
+    </div>
+    <div class="steps">
+      <section class="step">
+        <a class="back" href="./">← PT App</a>
+        <span class="eyebrow">Recovery</span>
+        <h1>Growth happens between sessions</h1>
+        <p class="lede">A workout does not make you bigger on the day. It sends the signal. The building happens over the next day or two.</p>
+        <p>Right after a hard session your muscles are <span class="k-a">tired and a little weaker</span>. Over the following days they repair and add protein, and if you recover well you come back <span class="k-ok">slightly ahead</span> of where you started.</p>
+        <span class="scrollcue">Scroll ↓</span>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Frequency</span>
+        <h2>Train each muscle twice a week</h2>
+        <p>Muscle building stays raised for roughly a day and a half after a hard session, then drops back to normal.</p>
+        <p>When the total weekly sets are the same, studies find only small differences between training a muscle once, twice or three times a week. Twice a week mainly helps by <span class="k-ok">splitting the sets</span>, so each one is done fresh instead of tired.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Soreness</span>
+        <h2>Soreness is not the signal</h2>
+        <p>Next-day <span class="k-c">soreness</span> comes mostly from new or unfamiliar work. It fades within a few sessions as your body gets used to an exercise, while <span class="k-a">growth</span> keeps adding up.</p>
+        <p>A session that leaves you not sore can still be a good one. Still being very sore when the next session comes round is a reason to do a little less, not a sign of extra growth.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Sleep</span>
+        <h2>Sleep is when you build</h2>
+        <p>In one study of 13 young adults, a single night without sleep cut <span class="k-a">muscle building</span> the next day by about 18%. <span class="k-c">Cortisol</span>, a stress hormone, rose 21% and <span class="k-b">testosterone</span> fell 24%.</p>
+        <p>Most adults need 7–9 hours. Regular sleep and wake times, a dark and cool room, and no caffeine late in the day all help.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Fatigue</span>
+        <h2>Fatigue builds quietly</h2>
+        <p>Hard weeks stack up. Joints ache, sleep gets worse, weights feel heavier, and progress stalls even though you train as hard as ever.</p>
+        <p>That is <span class="k-c">built-up fatigue</span> hiding the fitness you have gained. Training harder at this point usually makes it worse.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Deload</span>
+        <h2>Then take a lighter week</h2>
+        <p>A <span class="k-ok">deload</span> is a planned easy week: about half your usual sets, similar weights, and stopping further from failure.</p>
+        <p>Fatigue fades much faster than muscle, so you come back fresher, often stronger, without losing size. The app suggests one every 6–8 weeks, and sooner if a lift has stalled for 3–4 weeks.</p>
+      </section>
+    </div>
+  </div>
+  <section class="short">
+    <h2>The short version</h2>
+    <dl class="spec"><div><dt>Sleep</dt><dd class="v">7–9<small>hours a night</small></dd><dd class="n">The most useful recovery tool you have.</dd></div><div><dt>Frequency</dt><dd class="v">2×<small>per muscle a week</small></dd><dd class="n">Mainly to spread the sets.</dd></div><div><dt>Deload</dt><dd class="v">6–8<small>weeks apart</small></dd><dd class="n">About half the sets for one week.</dd></div><div><dt>Soreness</dt><dd class="v">0<small>needed</small></dd><dd class="n">Not a measure of a good session.</dd></div></dl>
+  </section>
+  <section class="sources">
+    <h3>Sources</h3>
+    <ul><li>MacDougall et al. (1995), Canadian Journal of Applied Physiology: time course of muscle protein synthesis after a session.</li><li>Schoenfeld, Grgic &amp; Krieger (2019), Journal of Sports Sciences: training frequency and muscle growth.</li><li>Lamon et al. (2021), Physiological Reports: one night of sleep deprivation, muscle protein synthesis and hormones.</li><li>Hirshkowitz et al. (2015), Sleep Health: recommended sleep duration for adults.</li></ul>
+    <p>The sleep chart plots published figures. The other diagrams are schematic and show the shape of each idea, not measured data. This page is general education, not individual medical advice.</p>
+  </section>
+  <div class="end"><a class="back" href="./">← Back to PT App</a><a class="back" href="choosing-exercises.html">Choosing exercises →</a></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage'), cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var capEl = document.getElementById('cap'), countEl = document.getElementById('count');
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var mq = window.matchMedia('(max-width: 819px)');
+  var w = 0, h = 0, hD = 0, dpr = 1, base = 1, C = {}, active = -1, fadeStart = 0, queued = false;
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function ease(t) { t = clamp(t); return t * t * (3 - 2 * t); }
+  function A(a) { ctx.globalAlpha = base * a; }
+  function disc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, 6.2832); }
+  function F(px, weight, disp) { if (w > 600) px = Math.round(px * 1.18); ctx.font = (weight || 500) + ' ' + px + 'px ' + (disp ? '"Barlow Condensed", "Arial Narrow", sans-serif' : '"Barlow", system-ui, sans-serif'); }
+  function T(s, x, y, align, bl, col) { ctx.textAlign = align || 'left'; ctx.textBaseline = bl || 'alphabetic'; ctx.fillStyle = col || C.muted; ctx.fillText(s, x, y); }
+  function setCap(s) { if (capEl.textContent !== s) capEl.textContent = s; }
+  function line(x0, y0, x1, y1) { ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+  function rr(x, y, ww, hh, r) { r = Math.max(0, Math.min(r, ww / 2, hh / 2)); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + ww, y, x + ww, y + hh, r); ctx.arcTo(x + ww, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + ww, y, r); ctx.closePath(); }
+  function readColors() { var cs = getComputedStyle(document.documentElement); ['bg','surface','ink','muted','line','fill','a','b','c','ok','okbg'].forEach(function (k) { C[k] = cs.getPropertyValue('--' + k).trim(); }); }
+  function box() { var cw = Math.min(w, 640), ch = Math.min(hD - 92, cw * 0.72), y0 = 56 + (hD - 92 - ch) / 2; return { x0: (w - cw) / 2 + 40, x1: (w + cw) / 2 - 14, y0: y0, y1: y0 + ch, cw: cw }; }
+  /* Draw a data line through pts (data coords), clipped at data x = upto. */
+  function trace(pts, X, Y, upto, col, lw) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, X(upto), h); ctx.clip();
+    ctx.strokeStyle = col; ctx.lineWidth = lw || 3.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); pts.forEach(function (p, i) { if (i) ctx.lineTo(X(p[0]), Y(p[1])); else ctx.moveTo(X(p[0]), Y(p[1])); }); ctx.stroke(); ctx.restore();
+  }
+  function at(pts, x) { for (var i = 1; i < pts.length; i++) if (pts[i][0] >= x) { var p = pts[i - 1], n = pts[i]; return lerp(p[1], n[1], (x - p[0]) / ((n[0] - p[0]) || 1)); } return pts[pts.length - 1][1]; }
+  function sample(fn, a, b, n) { var o = []; for (var i = 0; i <= n; i++) { var x = a + (b - a) * i / n; o.push([x, fn(x)]); } return o; }
+  function legend(items, x, y) { F(12, 600); var cx = x; items.forEach(function (it) { ctx.fillStyle = it[1]; rr(cx, y - 5, 14, 8, 2); ctx.fill(); T(it[0], cx + 20, y, 'left', 'middle', C.ink); cx += 34 + ctx.measureText(it[0]).width; }); }
+
+  /* 1. Tired after, rebuilt later */
+  function s1(q) {
+    var b = box(), X = function (d) { return lerp(b.x0, b.x1, d / 4); }, Y = function (v) { return lerp(b.y1, b.y0, (v - 76) / 32); };
+    var f = function (d) { return d < 0.3 ? 100 : 100 + 4 * (1 - Math.exp(-(d - 0.3) / 0.9)) - 19 * Math.exp(-(d - 0.3) / 0.6); };
+    var pts = sample(f, 0, 4, 200); pts.splice(15, 0, [0.3, 100]);
+    A(1); F(11); T('What your muscles can do, over four days', b.x0, b.y0 - 18);
+    ctx.setLineDash([5, 5]); ctx.strokeStyle = C.muted; ctx.lineWidth = 1.2; line(b.x0, Y(100), b.x1, Y(100)); ctx.setLineDash([]);
+    T('starting level', b.x1, Y(100) + 6, 'right', 'top');
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    [0, 1, 2, 3, 4].forEach(function (d) { T('day ' + d, X(d), b.y1 + 8, d === 0 ? 'left' : d === 4 ? 'right' : 'center', 'top'); });
+    F(11, 600); T('SESSION', X(0.3), b.y0 + 2, 'center', 'top', C.a);
+    ctx.strokeStyle = C.a; ctx.lineWidth = 1.5; ctx.setLineDash([3, 4]); line(X(0.3), b.y0 + 18, X(0.3), b.y1); ctx.setLineDash([]);
+    var u = 4 * ease(q); trace(pts, X, Y, u, C.ink); A(1); ctx.fillStyle = C.ink; disc(X(u), Y(at(pts, u)), 5.5); ctx.fill();
+    if (u > 1) { F(12, 600); T('tired', X(0.75), Y(84), 'left', 'middle', C.a); }
+    if (u > 3) { F(12, 600); T('rebuilt', X(3.1), Y(104) - 12, 'center', 'alphabetic', C.ok); }
+    setCap((u < 0.8 ? 'Right after a session you are weaker, not stronger' : u < 2.2 ? 'Day 1 and 2: repair and building' : 'Ready for the next session') + ' · schematic');
+  }
+  /* 2. Twice a week keeps building raised for more days */
+  function s2(q) {
+    var b = box(), X = function (d) { return lerp(b.x0, b.x1, d / 7); }, rows = [['Once a week', [0.4]], ['Twice a week', [0.4, 3.9]]];
+    var g = function (x) { return x < 0 ? 0 : Math.exp(-Math.pow((x - 0.9) / 0.55, 2)); }, u = 7 * ease(q), i;
+    A(1); F(11); T('Muscle building raised after each session', b.x0, b.y0 - 18);
+    var rh = (b.y1 - b.y0 - 60) / 2;
+    rows.forEach(function (r, k) {
+      var by = b.y0 + 24 + k * (rh + 30) + rh, top = by - rh * 0.8, Y = function (v) { return lerp(by, top, v); };
+      var f = function (t) { var s = 0; r[1].forEach(function (d) { s = Math.max(s, g(t - d)); }); return s; }, pts = sample(f, 0, 7, 280);
+      F(13, 600); T(r[0], b.x0, by - rh - 2, 'left', 'alphabetic', C.ink);
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, by, b.x1, by);
+      ctx.save(); ctx.beginPath(); ctx.rect(0, 0, X(u), h); ctx.clip();
+      A(0.2); ctx.fillStyle = C.ok; ctx.beginPath(); ctx.moveTo(X(0), by); pts.forEach(function (p) { ctx.lineTo(X(p[0]), Y(p[1])); }); ctx.lineTo(X(7), by); ctx.closePath(); ctx.fill(); ctx.restore();
+      A(1); trace(pts, X, Y, u, C.ok, 3);
+      r[1].forEach(function (d) { var hit = u >= d; ctx.fillStyle = hit ? C.a : C.bg; disc(X(d), by, 6); ctx.fill(); ctx.strokeStyle = hit ? C.a : C.muted; ctx.lineWidth = 2; disc(X(d), by, 6); ctx.stroke(); });
+    });
+    F(11); ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(function (d, i) { T(d, X(i + 0.5), b.y1 + 8, 'center', 'top'); });
+    setCap('Red dots are sessions · same weekly sets either way · schematic');
+  }
+  /* 3. Soreness fades, growth continues */
+  function s3(q) {
+    var b = box(), n = 8, sore = [9, 6.2, 4.3, 3.2, 2.6, 2.2, 2, 1.9], bw = (b.x1 - b.x0) / n, i, k = Math.max(1, Math.ceil(ease(q) * n));
+    var Y = function (v) { return lerp(b.y1, b.y0 + 30, v / 10); };
+    A(1); legend([['Soreness next day', C.c], ['Muscle size', C.a]], b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    for (i = 0; i < n; i++) {
+      var x = b.x0 + i * bw + bw * 0.2, on = i < k;
+      A(on ? 1 : 0.25); ctx.fillStyle = C.c; rr(x, Y(sore[i]), bw * 0.6, b.y1 - Y(sore[i]), 3); ctx.fill();
+      A(1); F(11); T(String(i + 1), x + bw * 0.3, b.y1 + 8, 'center', 'top');
+    }
+    var pts = []; for (i = 0; i < n; i++) pts.push([i, 2 + 7 * i / (n - 1)]);
+    var X = function (v) { return b.x0 + v * bw + bw * 0.5; };
+    trace(pts, X, Y, k - 1, C.a); ctx.fillStyle = C.a; disc(X(k - 1), Y(pts[k - 1][1]), 5.5); ctx.fill();
+    F(11); T('session', b.x1, b.y1 + 26, 'right', 'top');
+    setCap('Session ' + k + ': soreness ' + (k < 3 ? 'high' : k < 5 ? 'fading' : 'low') + ', growth still adding up · schematic');
+  }
+  /* 4. One night without sleep (measured) */
+  function s4(q) {
+    var b = box(), cx = (b.x0 + b.x1) / 2, half = (b.x1 - b.x0) / 2 - 8, X = function (v) { return cx + v / 30 * half; };
+    var rows = [['Muscle building', -18, C.a], ['Cortisol, a stress hormone', 21, C.c], ['Testosterone', -24, C.b]], i;
+    A(1); F(11); T('Change after one night without sleep', b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; line(cx, b.y0 + 6, cx, b.y1);
+    F(11); [-30, -15, 0, 15, 30].forEach(function (v) { T((v > 0 ? '+' : '') + v + '%', X(v), b.y1 + 8, 'center', 'top'); ctx.strokeStyle = C.line; ctx.lineWidth = 1; if (v) line(X(v), b.y0 + 6, X(v), b.y1); });
+    var rhh = (b.y1 - b.y0 - 10) / 3;
+    rows.forEach(function (r, k) {
+      var y = b.y0 + 10 + k * rhh, bh = Math.min(30, rhh * 0.38), g = ease((q - k * 0.15) / 0.5), v = r[1] * g;
+      F(13, 600); T(r[0], r[1] < 0 ? cx + 8 : cx - 8, y + rhh * 0.3, r[1] < 0 ? 'left' : 'right', 'alphabetic', C.ink);
+      ctx.fillStyle = r[2]; var x0 = Math.min(X(0), X(v)); rr(x0, y + rhh * 0.4, Math.abs(X(v) - X(0)), bh, 3); ctx.fill();
+      F(20, 700, true); T((r[1] > 0 ? '+' : '−') + Math.abs(Math.round(v)) + '%', r[1] < 0 ? X(v) - 6 : X(v) + 6, y + rhh * 0.4 + bh / 2, r[1] < 0 ? 'right' : 'left', 'middle', g > 0.95 ? C.ink : C.muted);
+    });
+    setCap('13 young adults, measured the next day · Lamon et al., 2021');
+  }
+  /* 5. Fatigue builds quietly */
+  function s5(q) {
+    var b = box(), X = function (wk) { return lerp(b.x0, b.x1, wk / 8); }, Y = function (v) { return lerp(b.y1, b.y0 + 24, v / 80); };
+    var perf = sample(function (t) { return 40 + 60 * (1 - Math.exp(-t / 2.5)) - 2.2 * Math.pow(t, 1.5) - 28; }, 0, 8, 160);
+    var fat = sample(function (t) { return 2.2 * Math.pow(t, 1.5); }, 0, 8, 160), u = 8 * ease(q);
+    A(1); legend([['What you can lift', C.ink], ['Built-up fatigue', C.c]], b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    F(11); [0, 2, 4, 6, 8].forEach(function (wk) { T('week ' + wk, X(wk), b.y1 + 8, wk === 0 ? 'left' : wk === 8 ? 'right' : 'center', 'top'); });
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, X(u), h); ctx.clip();
+    A(0.2); ctx.fillStyle = C.c; ctx.beginPath(); ctx.moveTo(X(0), b.y1); fat.forEach(function (p) { ctx.lineTo(X(p[0]), Y(p[1])); }); ctx.lineTo(X(8), b.y1); ctx.closePath(); ctx.fill(); ctx.restore();
+    A(1); trace(fat, X, Y, u, C.c, 2.5); trace(perf, X, Y, u, C.ink);
+    ctx.fillStyle = C.ink; disc(X(u), Y(at(perf, u)), 5.5); ctx.fill();
+    setCap((u < 3.5 ? 'Early weeks: fitness outpaces fatigue' : u < 5.5 ? 'Progress stalls while fatigue keeps rising' : 'Training harder now makes it worse') + ' · schematic');
+  }
+  /* 6. The deload */
+  function s6(q) {
+    var b = box(), sets = [14, 14, 15, 15, 16, 16, 7, 15, 16, 16], perf = [60, 63, 65, 66, 66, 65, 64, 70, 72, 73], n = 10, bw = (b.x1 - b.x0) / n, i, k = Math.max(1, Math.ceil(ease(q) * n));
+    var Y = function (v) { return lerp(b.y1, b.y0 + 30, v / 20); }, P = function (v) { return lerp(b.y1, b.y0 + 30, (v - 30) / 50); }, X = function (v) { return b.x0 + v * bw + bw / 2; };
+    A(1); legend([['Weekly sets', C.line], ['Deload', C.ok], ['What you can lift', C.ink]], b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    for (i = 0; i < n; i++) {
+      A(i < k ? 1 : 0.3); ctx.fillStyle = i === 6 ? C.ok : C.line; rr(X(i) - bw * 0.3, Y(sets[i]), bw * 0.6, b.y1 - Y(sets[i]), 3); ctx.fill();
+      A(1); F(11); T(String(i + 1), X(i), b.y1 + 8, 'center', 'top');
+    }
+    var pts = perf.map(function (v, i) { return [i, v]; }); trace(pts, X, P, k - 1, C.ink);
+    ctx.fillStyle = C.ink; disc(X(k - 1), P(perf[k - 1]), 5.5); ctx.fill();
+    if (k >= 7) { F(11, 600); T('half the sets', X(6), Y(7) - 8, 'center', 'alphabetic', C.ok); }
+    F(11); T('week', b.x1, b.y1 + 26, 'right', 'top');
+    setCap((k < 7 ? 'Weeks ' + k + ': hard training, progress flattening' : k === 7 ? 'Deload week: about half the sets' : 'Fresh again, and progress picks up') + ' · schematic');
+  }
+  var SCENES = [s1, s2, s3, s4, s5, s6];
+
+  function size() { var r = stage.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2); w = r.width; h = r.height; hD = h - 44; cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr)); }
+  function render(now) {
+    queued = false; if (w < 2) return;
+    var H = window.innerHeight, sh = stage.getBoundingClientRect().height, focal = mq.matches ? sh + (H - sh) * 0.75 : H * 0.62;
+    var rects = steps.map(function (s) { return s.getBoundingClientRect(); }), idx = 0, i, p;
+    for (i = 0; i < rects.length; i++) if (rects[i].top <= focal) idx = i;
+    if (idx === 0) { var sy = window.scrollY || window.pageYOffset || 0; p = sy / Math.max(1, rects[1].top + sy - focal); }
+    else p = (focal - rects[idx].top) / Math.max(1, rects[idx].height);
+    var q = clamp(p / 0.72);
+    if (idx !== active) { fadeStart = active === -1 ? -1e9 : (now || performance.now()); active = idx; countEl.textContent = (idx + 1) + ' / ' + SCENES.length; }
+    base = clamp(((now || performance.now()) - fadeStart) / 260);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.save(); SCENES[idx](q); ctx.restore(); ctx.globalAlpha = 1;
+    if (base < 1) queue();
+  }
+  function queue() { if (!queued) { queued = true; requestAnimationFrame(render); } }
+  window.addEventListener('scroll', queue, { passive: true });
+  window.addEventListener('resize', function () { size(); queue(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { size(); queue(); }).observe(stage);
+  var dm = window.matchMedia('(prefers-color-scheme: dark)'), onTheme = function () { readColors(); queue(); };
+  if (dm.addEventListener) dm.addEventListener('change', onTheme);
+  new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  readColors(); size(); queue();
+})();
+</script>
+</body>
+</html>

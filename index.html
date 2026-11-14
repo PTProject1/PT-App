@@ -168,6 +168,35 @@ button.sn{width:100%;height:46px;border-radius:10px}
 .btn:disabled{opacity:.35}
 .hrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;width:100%;text-align:left}
 .hrow b{font:600 20px var(--display)}
+/* Weekly weight check */
+.wc-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.wc-v{font:700 30px/1 var(--display)}
+.wc-v small{font:600 13.5px var(--body);color:var(--mute);margin-left:6px}
+.verdict{border-radius:12px;padding:12px 14px;display:flex;flex-direction:column;gap:4px;background:var(--fill)}
+.verdict b{font:600 18px/1.15 var(--display)}
+.verdict.ok{background:var(--okbg)}.verdict.ok b{color:var(--ok)}
+.verdict.act{background:var(--warnbg)}.verdict.act b{color:var(--warn)}
+.pace{position:relative;height:28px;margin:4px 0 2px}
+.pace .ln{position:absolute;left:0;right:0;top:13px;height:2px;background:var(--line)}
+.pace .zn{position:absolute;top:7px;height:14px;border-radius:4px;background:var(--okbg);border:1px solid var(--ok)}
+.pace .zr{position:absolute;top:3px;width:2px;height:22px;margin-left:-1px;background:var(--mute)}
+.pace .me{position:absolute;top:6px;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:var(--ink);border:2px solid var(--surface)}
+.pace-ax{display:flex;justify-content:space-between;color:var(--faint);font-size:11.5px}
+/* Body map */
+.bmap{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.bmap figure{margin:0;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
+.bmap figcaption{font-size:12.5px;font-weight:600;color:var(--mute)}
+.bmap svg{width:100%;max-width:170px;height:auto;display:block;overflow:visible}
+.bmap .bn{fill:var(--fill)}
+.bmap .bm{cursor:pointer;outline:none}
+.bmap .bm>*{fill:var(--mf);stroke:var(--surface);stroke-width:1.2;transition:fill .2s ease}
+.bmap .bm.over>*{stroke:var(--ink);stroke-width:1.2;stroke-dasharray:2.5 2}
+.bmap .bm.on>*{stroke:var(--ink);stroke-width:2.2;stroke-dasharray:none}
+.bmap .bm:focus-visible>*{stroke:var(--ink);stroke-width:2.6}
+.scale{display:flex;align-items:center;gap:8px;color:var(--mute);font-size:12.5px;flex-wrap:wrap}
+.scale b{color:var(--ink);font-weight:600}
+.scale .ovw{display:inline-flex;align-items:center;gap:6px}.scale .ov{display:block;width:14px;height:10px;border-radius:2px;background:var(--ink);box-shadow:0 0 0 1.5px var(--surface),0 0 0 2.5px var(--ink)}
+.gl{display:flex;flex-direction:column;gap:2px;padding:11px 0;border-top:1px solid var(--line);color:var(--ink);text-decoration:none}.gl:first-child{border-top:0;padding-top:0}.gl b{font-weight:600;display:flex;justify-content:space-between;gap:10px}.gl b::after{content:"→";color:var(--mute)}.gl:focus-visible{outline:2px solid var(--ink);outline-offset:2px;border-radius:6px}
 .hset{display:grid;grid-template-columns:26px 1fr 1fr 58px;gap:6px;align-items:center}
 .tog{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:15px}
 .tog .seg{flex:0 0 132px}
@@ -291,7 +320,7 @@ function chart(lb,v,o={}){
  const id=CH.push({xs:v.map((_,i)=>X(i)),ys:v.map(Y),lb,v:v.map(rd),u:o.unit||''})-1;
  return `<svg class="ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(o.label||'Chart')}" data-ch="${id}">`
  +(band?`<rect class="bnd" x="${L}" y="${Y(band[1])}" width="${W-L-R}" height="${Y(band[0])-Y(band[1])}"/><text class="lb" x="${L+6}" y="${Y(band[1])+13}">typical range</text>`:'')
- +tk.map(x=>`<line class="gr" x1="${L}" x2="${W-R}" y1="${Y(x)}" y2="${Y(x)}"/><text class="lb" x="${L-6}" y="${Y(x)+4}" text-anchor="end">${rd(x)}</text>`).join('')
+ +tk.map(x=>`<line class="gr" x1="${L}" x2="${W-R}" y1="${Y(x)}" y2="${Y(x)}"/><text class="lb" x="${L-6}" y="${Y(x)+4}" text-anchor="end">${+x.toFixed(st<.1?2:1)}</text>`).join('')
  +(n>1?`<path class="ar" d="M${X(0)},${base} L${pts.replace(/ /g,' L')} L${lx},${base} Z"/><polyline class="ln" points="${pts}"/>`:'')
  +v.map((x,i)=>i<n-1?`<circle class="pt" cx="${X(i)}" cy="${Y(x)}" r="3.5"/>`:'').join('')
  +`<circle class="lp" cx="${lx}" cy="${Y(v[n-1])}" r="5.5"/><text class="vl" x="${lx}" y="${Y(v[n-1])-11}" text-anchor="${n>1?'end':'middle'}">${rd(v[n-1])}</text>`
@@ -310,6 +339,48 @@ function banner(){const a=[];HD().forEach(d=>S.hist[d].forEach(h=>a.push(h.date)
 function updHero(){const d=S.day;let dn=0,tt=0;S.plan[d].forEach((e,i)=>{const ss=sets(d,i),k=ss.filter(s=>s.done).length;tt+=ss.length;dn+=k;const c=$('c'+i);if(c){c.textContent=k+'/'+ss.length;c.classList.toggle('full',k===ss.length)}});
  const a=$('hc'),b=$('hb'),lt=!dn&&(S.hist[d]||[]).filter(x=>wkOf(x.date)===wkOf(today())).pop(),ln=lt?Object.keys(lt.ex).reduce((n,k)=>n+W(lt.ex[k]).length,0):0;if(a)a.textContent=lt?(lt.date===today()?'Logged today':'Done '+new Date(lt.date+'T12:00:00').toLocaleDateString('en-GB',{weekday:'short'}))+', '+ln+' sets':tt?dn+' of '+tt+' sets done':'';if(b)b.style.width=(lt?100:tt?dn/tt*100:0)+'%'}
 const muSel=(id,cur)=>`<select id="${id}" aria-label="Muscle group">${Object.keys(RNG).map(k=>`<option${k===cur?' selected':''}>${k}</option>`).join('')}</select>`;
+
+/* Weekly weight check: compares weekly average body weight against the target pace for the goal and suggests a small calorie change. */
+const NG={gain:['Build',.25,.5,150],keep:['Recomp',-.25,.25,100],cut:['Lose fat',-1,-.5,150]};
+function wkAvg(){const o={};S.bw.forEach(x=>{if(!x.kg)return;const k=wkOf(x.date);(o[k]=o[k]||[]).push(x.kg)});
+ return Object.keys(o).sort().filter(k=>o[k].length>=2).map(k=>({w:k,n:o[k].length,a:o[k].reduce((p,v)=>p+v,0)/o[k].length}))}
+function wCheck(){const N=S.nut=S.nut||{goal:'gain'},G=NG[N.goal]||NG.gain,A=wkAvg(),nf=v=>Math.round(v).toLocaleString('en-GB');
+ let h=`<section class="card" id="wcheck"><h2>Weekly weight check</h2><p class="sub">Compares your weekly average weight with the pace for your goal, and tells you when to change your calories.</p><div class="seg">${Object.keys(NG).map(k=>`<button data-ng="${k}" aria-pressed="${k===N.goal}">${NG[k][0]}</button>`).join('')}</div>`;
+ if(A.length<2){const cur=S.bw.filter(x=>x.kg&&wkOf(x.date)===wkOf(today())).length;
+  h+=`<div class="verdict"><b>Not enough weigh-ins yet</b><span class="sub">Weigh yourself in the morning, before eating, at least twice a week. The check needs two weeks with two or more weigh-ins each. ${A.length} of 2 weeks ready, ${cur} weigh-in${cur===1?'':'s'} this week.</span></div>`}
+ else{const rate=i=>{const x=A[i-1],y=A[i],gap=Math.max(1,Math.round((new Date(y.w+'T12:00:00')-new Date(x.w+'T12:00:00'))/6048e5));return{p:(y.a-x.a)/x.a*100/gap,kg:(y.a-x.a)/gap}};
+  const L=A[A.length-1],r=rate(A.length-1),st=v=>v<G[1]?-1:v>G[2]?1:0,s=st(r.p),r2=A.length>=3?rate(A.length-2):null,both=r2&&st(r2.p)===s,sg=v=>(v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(2);
+  const lo=Math.min(-1.25,r.p-.15),hi=Math.max(.75,r.p+.15),X=v=>((v-lo)/(hi-lo)*100).toFixed(1)+'%',days=N.applied?Math.floor((new Date(today()+'T12:00:00')-new Date(N.applied+'T12:00:00'))/864e5):99;
+  h+=`<div class="wc-top"><div class="wc-v">${rd(L.a)} kg<small>average, week of ${dl(L.w)}</small></div><span class="sub">${sg(r.kg)} kg a week (${sg(r.p)}%)</span></div>`;
+  h+=`<div><div class="pace" aria-hidden="true"><i class="ln"></i><i class="zn" style="left:${X(G[1])};width:calc(${X(G[2])} - ${X(G[1])})"></i><i class="zr" style="left:${X(0)}"></i><i class="me" style="left:${X(r.p)}"></i></div><div class="pace-ax"><span>losing</span><span>target ${sg(G[1])} to ${sg(G[2])}% a week</span><span>gaining</span></div></div>`;
+  const amt=G[3],dir=s<0?'add':'remove',nk=N.kcal?N.kcal+(s<0?amt:-amt):0;let v='';
+  if(s===0)v=`<div class="verdict ok"><b>On pace</b><span class="sub">Keep your calories as they are and check again next week.</span></div>`;
+  else if(days<14)v=`<div class="verdict"><b>${s<0?'Below':'Above'} the target pace</b><span class="sub">You changed your calories ${days===0?'today':days===1?'yesterday':days+' days ago'}. Give the change two weeks to show in the weekly average before changing again.</span></div>`;
+  else if(both)v=`<div class="verdict act"><b>${dir==='add'?'Add':'Remove'} about ${amt} kcal a day</b><span class="sub">Two weeks running ${s<0?'below':'above'} the target pace, so this is a trend, not water.${N.kcal?' That takes your daily target from '+nf(N.kcal)+' to '+nf(nk)+' kcal.':''}</span></div>${N.kcal?`<button class="btn" data-na="${nk}">Update target to ${nf(nk)} kcal</button>`:''}`;
+  else v=`<div class="verdict"><b>${s<0?'Below':'Above'} the target pace this week</b><span class="sub">One week can be water, salt or a big meal. If next week's average is ${s<0?'below':'above'} the pace again, ${dir} about ${amt} kcal a day.</span></div>`;
+  h+=v+chart(A.map(x=>dl(x.w)),A.map(x=>rd(x.a)),{unit:'kg',label:'Weekly average weight'})}
+ h+=`<div class="frow"><label class="fld">Daily calorie target<input id="nkc" class="txt" inputmode="numeric" placeholder="e.g. 3100" value="${N.kcal||''}"></label><button class="btn ghost" data-nk="1" style="align-self:flex-end">Save</button></div><p class="sub">${N.kcal?'Your target is '+nf(N.kcal)+' kcal a day'+(N.applied?', last changed '+dl(N.applied):'')+'.':'Optional. Use the number from the nutrition calculator, or what you eat now, and the check will give you the new target.'}</p></section>`;
+ return h}
+
+/* Body map: each muscle coloured by direct sets this week (or in the plan) against its typical range. */
+const GUIDES=[["how-muscle-grows.html","How muscle grows","What makes a muscle bigger, from tension to new protein."],["feeding-muscle-growth.html","Feeding muscle growth","Calories, protein and macros, with a calculator."],["recovery-and-sleep.html","Recovery and sleep","Soreness, sleep, fatigue and deload weeks."],["choosing-exercises.html","Choosing exercises","Stretch, stability and when to swap an exercise."],["progressive-overload.html","Progressing your lifts","Reps in reserve and double progression."]];
+let pbx='log';
+function bodyMap(cw,w){const val=m=>pbx==='plan'?planSets(m):((cw[m]||{}).s||0);
+ const pc=m=>{const n=val(m);return n<=0?0:Math.round(22+78*Math.min(1,n/RNG[m][0]))};
+ const E=(cx,cy,rx,ry,r)=>`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}"${r?` transform="rotate(${r} ${cx} ${cy})"`:''}/>`;
+ const M2=(f)=>f+`<g transform="matrix(-1 0 0 1 120 0)">${f}</g>`;
+ const mu=(m,sh)=>`<g class="bm${m===pmu?' on':''}${val(m)>RNG[m][1]?' over':''}" data-bmu="${m}" data-reg="${REG[m]}" style="--mf:${pc(m)?`color-mix(in srgb,var(--rc) ${pc(m)}%,var(--line))`:'var(--line)'}" role="button" tabindex="0" aria-label="${m}: ${val(m)} sets, range ${RNG[m][0]} to ${RNG[m][1]}"><title>${m}: ${val(m)} sets</title>${sh}</g>`;
+ const base=`<g class="bn"><circle cx="60" cy="17" r="12"/><rect x="54" y="26" width="12" height="12" rx="3"/><path d="M40 40 Q60 34 80 40 L86 66 Q84 96 79 116 L41 116 Q36 96 34 66 Z"/>${M2(E(31,96,5,14,8)+E(28,116,4,5)+E(53,184,6,6)+E(50,212,6,19)+E(49,236,7,4))}<path d="M41 112 L79 112 L82 134 Q60 142 38 134 Z"/></g>`;
+ const front=base+mu('Shoulders',M2(E(36,49,9,10,-10)))+mu('Chest',M2('<path d="M59 45 L44 45 Q38 51 40 61 Q48 70 59 66 Z"/>'))+`<g class="bn"><rect x="51" y="70" width="18" height="40" rx="5"/></g>`
+  +mu('Biceps',M2(E(33,72,6,13,10)))+mu('Quads',M2(E(50,156,9.5,26,-4)))+mu('Calves',M2(E(45,208,3.6,15,4)));
+ const back=base+mu('Back',`<path d="M60 36 L75 46 L60 64 L45 46 Z"/>`+M2('<path d="M58 64 L44 56 Q39 74 46 98 L58 104 Z"/>'))+mu('Rear delts',M2(E(36,50,8.5,9.5,-10)))
+  +mu('Triceps',M2(E(33,73,6,13,10)))+mu('Glutes',M2(E(51,124,10,11)))+mu('Hamstrings',M2(E(50,160,8.5,22,-3)))+mu('Calves',M2(E(49,208,7,17)));
+ const svg=(b,l)=>`<figure><svg viewBox="0 0 120 244" role="group" aria-label="${l}">${b}</svg><figcaption>${l}</figcaption></figure>`;
+ const lab=pbx==='plan'?'planned':pwk===0?'this week':'that week';
+ return `<section class="card"><h2>Body map</h2><div class="seg"><button data-bx="log" aria-pressed="${pbx==='log'}">${pwk===0?'Logged this week':'Logged that week'}</button><button data-bx="plan" aria-pressed="${pbx==='plan'}">Your plan</button></div><div class="bmap">${svg(front,'Front')}${svg(back,'Back')}</div><div class="scale"><span><b>Paler</b> fewer sets</span><span><b>Full colour</b> range reached</span><span class="ovw"><i class="ov"></i>Outline above range</span></div><p class="sub">Direct sets ${lab}. Tap a muscle to see its detail below.</p></section>`}
+function pickMu(m){if(!m||!RNG[m])return;pmu=m;pex='';render();const c=document.querySelector('[data-mu-detail]');if(c)try{c.scrollIntoView({block:'start',behavior:'smooth'})}catch(e){}}
+document.addEventListener('click',ev=>{const g=ev.target.closest&&ev.target.closest('[data-bmu]');if(g)pickMu(g.dataset.bmu)});
+document.addEventListener('keydown',ev=>{const g=ev.target.closest&&ev.target.closest('[data-bmu]');if(g&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();pickMu(g.dataset.bmu)}});
 
 function vTrain(){
  if(!DAYS.length){document.querySelector('nav').hidden=true;$('view').innerHTML=`<div class="welcome"><div class="logo" aria-hidden="true"><svg viewBox="0 0 512 512"><g fill="none" stroke="currentColor" stroke-width="34" stroke-linecap="round"><path d="M112 216v80M168 168v176M344 168v176M400 216v80M168 256h176"/></g></svg></div><div><h1>PT App</h1><p class="lead">Your hypertrophy coach. It builds your program, tells you what to lift next and tracks your weekly volume per muscle.</p></div><div class="wl"><div><span data-reg="push">${DOT}</span>A program built around your week, equipment and priorities</div><div><span data-reg="pull">${DOT}</span>A target for every exercise, based on your last session</div><div><span data-reg="legs">${DOT}</span>Weekly sets per muscle against the ranges that drive growth</div></div><label class="fld">What should we call you? Optional<input class="txt" id="wn" autocomplete="given-name" placeholder="First name" value="${esc(S.name||'')}"></label><button class="btn big" data-start="1">Get started</button><p class="sub">No account needed. Your data stays on this phone, and you can export a backup at any time.</p></div>`;return}
@@ -335,8 +406,7 @@ function vTrain(){
  if(logText)h+=`<section class="card note-c" id="res" style="border-color:var(--ink)"><h2>Session saved</h2>${sesNotes.length?`<div class="list">${sesNotes.map(n=>`<div class="li"><span>${esc(n)}</span></div>`).join('')}</div>`:''}<p class="sub">Copy this log to keep it or share it.</p><textarea id="lt" readonly aria-label="Session log">${esc(logText)}</textarea><button class="btn" data-copy="lt">Copy log</button></section>`;
  h+=`<section class="card"><h2>Add exercise</h2><div class="frow"><input class="txt" id="nn" list="lib" placeholder="Search the library or type a name" aria-label="Exercise name">${muSel('nm','Chest')}<button class="btn ghost" id="na">Add</button></div><p class="sub">Library exercises set their own muscle, rep range and rest. The muscle menu is only for exercises you name yourself.</p></section>`;
  h+=`<section class="card"><h2>Program</h2><p class="sub">Build a new program from your schedule, equipment and priorities.</p><button class="btn ghost" data-view="builder">Open program builder</button></section>`;
- h+=`<section class="card"><h2>How muscle grows</h2><p class="sub">A short scroll-through on what makes a muscle bigger, and where the numbers in this app come from.</p><a class="btn ghost" href="how-muscle-grows.html">Read the explainer</a></section>`;
- h+=`<section class="card"><h2>Feeding muscle growth</h2><p class="sub">How calories, protein, carbs and fat support growth, with a calculator for your own daily targets.</p><a class="btn ghost" href="feeding-muscle-growth.html">Read the nutrition guide</a></section>`;
+ h+=`<section class="card"><h2>Guides</h2><p class="sub">Short scroll-through explainers on the science behind this app.</p><div class="list">${GUIDES.map(g=>`<a class="gl" href="${g[0]}"><b>${g[1]}</b><span class="sub">${g[2]}</span></a>`).join('')}</div></section>`;
  $('view').innerHTML=h;updHero()}
 
 function vProgress(){
@@ -345,6 +415,7 @@ function vProgress(){
  HD().forEach(d=>S.hist[d].forEach(x=>{if(wkOf(x.date)===w)ses++}));
  let h=`<div class="hero"><div class="hero-row"><span>Week of ${dl(w)}${pwk===0?', this week':''}</span><span class="wk"><button class="ico" data-w="-1" aria-label="Previous week">‹</button><button class="ico" data-w="1" aria-label="Next week"${pwk===0?' disabled':''}>›</button></span></div><h1>Progress</h1>
  <div class="stats"><div><b>${ses}</b><span>sessions logged</span></div><div><b>${tot}</b><span>sets logged</span></div><div><b>${inr}/${names.length}</b><span>muscles in range${pwk===0?', by plan':''}</span></div></div></div>`;
+ h+=bodyMap(cw,w);
  h+=`<section class="card"><h2>Weekly sets by muscle</h2><div class="legend"><span><i data-reg="push"></i>Push</span><span><i data-reg="pull"></i>Pull</span><span><i data-reg="legs"></i>Legs</span><span><i class="k2"></i>Typical range</span><span><i class="k4"></i>Indirect</span><span><i class="k3"></i>Planned</span></div>`;
  names.forEach(m=>{const r=RNG[m],c=cw[m]||{},lg=c.s||0,ind=c.i||0,pl=planSets(m),st=stat(pwk===0?pl:lg,m);
   h+=`<button class="mrow${m===pmu?' on':''}" data-mu="${m}"${ra(REG[m])}><span class="mr-h"><b>${DOT}${m}</b><span class="pill ${st==='in range'?'ok':'wn'}">${st}</span></span><span class="trk"><i class="bd" style="left:${p(r[0])}%;width:${p(r[1])-p(r[0])}%"></i><i class="fi" style="left:${p(lg)}%;width:${p(lg+ind)-p(lg)}%"></i><i class="fl" style="width:${p(lg)}%"></i><i class="tk" style="left:${p(pl)}%"></i></span><span class="mr-f">${lg} direct${ind?' + '+ind+' indirect':''}, ${pl} planned, range ${r[0]}–${r[1]}</span></button>`});
@@ -352,7 +423,7 @@ function vProgress(){
  const wks=Object.keys(wk).sort(),mu=pmu,r=RNG[mu],s2=[];
  if(wks.length)for(let x=wks[0];x<=cur;x=addW(x,1))s2.push(x);
  const v=s2.map(x=>((wk[x]||{})[mu]||{})[pmm==='sets'?'s':'v']||0),ser=series(),exs=Object.keys(ser).filter(n=>MU(n)===mu).sort();
- h+=`<section class="card"${ra(REG[mu])}><h2>${DOT}${mu}</h2><div class="seg"><button data-mm="sets" aria-pressed="${pmm==='sets'}">Weekly sets</button><button data-mm="vol" aria-pressed="${pmm==='vol'}">Weekly volume</button></div><p class="sub">${pmm==='sets'?'Direct sets per week against the typical range of '+r[0]+'–'+r[1]+'.':'Total weight × reps per week, in kg.'}</p>${v.length?chart(s2.map(dl),v,{band:pmm==='sets'?r:null,zero:true,unit:pmm==='sets'?'sets':'kg',label:mu+' per week'}):'<p class="sub">No sets logged yet.</p>'}`;
+ h+=`<section class="card" data-mu-detail${ra(REG[mu])}><h2>${DOT}${mu}</h2><div class="seg"><button data-mm="sets" aria-pressed="${pmm==='sets'}">Weekly sets</button><button data-mm="vol" aria-pressed="${pmm==='vol'}">Weekly volume</button></div><p class="sub">${pmm==='sets'?'Direct sets per week against the typical range of '+r[0]+'–'+r[1]+'.':'Total weight × reps per week, in kg.'}</p>${v.length?chart(s2.map(dl),v,{band:pmm==='sets'?r:null,zero:true,unit:pmm==='sets'?'sets':'kg',label:mu+' per week'}):'<p class="sub">No sets logged yet.</p>'}`;
  if(exs.length)h+=`<div class="list">${exs.map(n=>{const rw=ser[n],a=MET.e1rm[1](rw[0].s),b=MET.e1rm[1](rw[rw.length-1].s),pc=(b-a)/a*100;return `<div class="li"><span>${esc(n)}</span><span class="r">${rw.length>1?Math.round(a)+' → '+Math.round(b)+' kg est. 1RM, '+(pc>=0?'+':'')+pc.toFixed(1)+'%':'est. 1RM '+Math.round(b)+' kg, 1 session'}</span></div>`}).join('')}</div>`;
  h+=`</section>`;
  const names2=exs;if(!pex||!names2.includes(pex))pex=names2[0]||'';
@@ -365,6 +436,7 @@ function vBody(){
  const bw=S.bw,tile=k=>{const a=bw.filter(x=>x[k]);if(!a.length)return `<div><b>–</b><span>${BM[k][0]}</span></div>`;const l=a[a.length-1][k],f=a[0][k],dv=rd(l-f);return `<div><b>${l}</b><span>${BM[k][0]}, ${BM[k][1]}</span>${a.length>1?`<em>${dv>0?'+':''}${dv} since ${dl(a[0].date)}</em>`:''}</div>`};
  const bp=bw.filter(x=>x[pbm]).slice(-60);
  let h=`<div class="hero"><div class="hero-row"><span>${bw.length?'Last entry '+dl(bw[bw.length-1].date):'No entries yet'}</span></div><h1>Body</h1><div class="stats">${tile('kg')}${tile('fat')}${tile('mus')}</div></div>`;
+ h+=wCheck();
  h+=`<section class="card"><h2>Trend</h2><div class="seg">${Object.keys(BM).map(k=>`<button data-bm="${k}" aria-pressed="${k===pbm}">${BM[k][0]}</button>`).join('')}</div>${bp.length?chart(bp.map(x=>dl(x.date)),bp.map(x=>x[pbm]),{unit:BM[pbm][1],label:BM[pbm][0]}):`<p class="sub">No ${BM[pbm][0].toLowerCase()} entries yet.</p>`}${bp.length===1?'<p class="sub">One entry so far. A line appears from the second.</p>':''}${S.wnote?`<p class="sub">${esc(S.wnote)}</p>`:''}</section>`;
  h+=`<section class="card"><h2>Add entry</h2><div class="frow"><input id="bdt" class="txt" type="date" value="${today()}" aria-label="Date"></div><div class="frow"><input id="bwk" inputmode="decimal" placeholder="Weight kg" aria-label="Weight in kg"><input id="bft" inputmode="decimal" placeholder="Fat %" aria-label="Body fat percent"></div><div class="frow"><input id="bms" inputmode="decimal" placeholder="Muscle kg" aria-label="Muscle mass in kg"><input id="bkc" inputmode="numeric" placeholder="kcal" aria-label="Calories"></div><button class="btn" data-bw="1">Save entry</button><p class="sub">Saving on a date that already has an entry updates it.</p></section>`;
  h+=`<section class="card"><h2>Entries</h2>${bw.length?`<div class="list">${bw.slice(-12).reverse().map(x=>`<div class="li"><span><b>${dl(x.date)}</b> ${[x.kg&&x.kg+' kg',x.fat&&x.fat+'% fat',x.mus&&x.mus+' kg muscle',x.kc&&x.kc+' kcal'].filter(Boolean).join(', ')}</span><button class="lnk" data-bdel="${x.date}">Remove</button></div>`).join('')}</div>`:'<p class="sub">Nothing logged yet.</p>'}</section>`;
@@ -457,6 +529,10 @@ document.addEventListener('click',ev=>{
  if(ds.m){pm=ds.m;render();return}
  if(ds.mm){pmm=ds.mm;render();return}
  if(ds.bm){pbm=ds.bm;render();return}
+ if(ds.bx){pbx=ds.bx;render();return}
+ if(ds.ng){S.nut=S.nut||{};S.nut.goal=ds.ng;save();render();return}
+ if(ds.nk){const v=Math.round(num('nkc'));S.nut=S.nut||{goal:'gain'};if(v>=800&&v<=8000){if(S.nut.kcal&&S.nut.kcal!==v)S.nut.applied=today();S.nut.kcal=v}else{delete S.nut.kcal;delete S.nut.applied}save();render();return}
+ if(ds.na){S.nut=S.nut||{goal:'gain'};S.nut.kcal=+ds.na;S.nut.applied=today();save();render();const c=$('wcheck');if(c)try{c.scrollIntoView({block:'start'})}catch(e){}return}
  if(ds.w){pwk=Math.min(0,pwk+(+ds.w));render();return}
  if(ds.dl){S.deload=today();save();render();return}
  if(ds.alt){$('sn').value=ds.alt;return}
