@@ -9,7 +9,10 @@ A hypertrophy training tracker that runs in the phone browser and installs to th
 - Session history, personal records, export and restore
 - "How muscle grows": a scroll-through explainer (`how-muscle-grows.html`), linked from the Train and Program screens
 - "Feeding muscle growth": a nutrition explainer with a calorie and macro calculator (`feeding-muscle-growth.html`), linked from the Train and Body screens
+- Three more guides: "Recovery and sleep", "Choosing exercises" and "Progressing your lifts", all listed in the Guides card on the Train screen
+- Weekly weight check on the Body screen: compares weekly average weight with the pace for your goal and suggests calorie changes
+- Body map on the Progress screen: each muscle coloured by this week's sets against its range
 
 All data is stored in the browser on the device. Nothing is sent to a server.
 
-No build step: `index.html`, `how-muscle-grows.html`, `feeding-muscle-growth.html`, `sw.js` and `manifest.webmanifest` are served as they are.
+No build step: `index.html`, `how-muscle-grows.html`, `feeding-muscle-growth.html`, the other guide pages, `sw.js` and `manifest.webmanifest` are served as they are.

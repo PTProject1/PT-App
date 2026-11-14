@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Choosing Exercises · PT App</title>
+<meta name="description" content="A scroll-through explainer on picking exercises that build muscle well.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<script>
+/* Always open at the first slide, whatever scroll position the previous screen had. */
+(function () {
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+  function top() { window.scrollTo(0, 0); }
+  top();
+  window.addEventListener('DOMContentLoaded', top);
+  window.addEventListener('load', function () { top(); setTimeout(top, 60); setTimeout(top, 300); });
+  window.addEventListener('pageshow', top);
+})();
+</script>
+<style>
+/* Layout: text steps scroll past one sticky drawing stage (right column on desktop, top band on phones).
+   Colours follow the app: red, blue and amber for the things being compared, green for the target. */
+:root {
+  --bg: #f3f3f1; --surface: #fff; --ink: #0b0b0b; --muted: #666663; --line: #e1e1dd; --fill: #eeeeeb;
+  --a: #d8432e; --b: #2456c9; --c: #b97800; --ok: #167a48; --okbg: #dcf1e5;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+    --a: #e0503c; --b: #5585f5; --c: #e6a94a; --ok: #5fd08f; --okbg: #10301f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+  --a: #e0503c; --b: #5585f5; --c: #e6a94a; --ok: #5fd08f; --okbg: #10301f;
+  color-scheme: dark;
+}
+*, *::before { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--font-body); font-variant-numeric: tabular-nums; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1180px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.scrolly { display: grid; grid-template-columns: minmax(0, 30rem) minmax(0, 1fr); column-gap: 56px; }
+.stage { grid-column: 2; grid-row: 1; position: sticky; top: env(safe-area-inset-top, 0px); align-self: start; height: 100vh; height: 100svh; min-width: 0; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap, .count { position: absolute; margin: 0; font: 500 13px/1.35 var(--font-body); color: var(--muted); }
+.cap { left: 0; right: 0; bottom: 16px; }
+.count { right: 0; top: 16px; }
+.steps { grid-column: 1; grid-row: 1; min-width: 0; }
+.step { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-block: 12vh; }
+.step p { margin: 0; max-width: 34em; }
+.eyebrow { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { margin: 0; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; text-wrap: balance; letter-spacing: 0.005em; }
+h1 { font-size: clamp(3.2rem, 8vw, 6.4rem); line-height: 0.9; }
+h2 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 0.98; }
+.lede { font-size: 1.15rem; }
+.k-a { color: var(--a); font-weight: 600; } .k-b { color: var(--b); font-weight: 600; } .k-c { color: var(--c); font-weight: 600; } .k-ok { color: var(--ok); font-weight: 600; }
+.scrollcue { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+.back { align-self: flex-start; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 12px; color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; }
+.back:hover { border-color: var(--ink); }
+.back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.short { border-top: 1px solid var(--line); padding-block: 72px 40px; }
+.short h2 { margin-bottom: 28px; }
+.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 40px; margin: 0; }
+.spec div { border-top: 2px solid var(--ink); padding-top: 12px; min-width: 0; }
+.spec dt { font: 600 12px/1.3 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.spec .v { font: 700 2.6rem/1 var(--font-display); margin: 8px 0 6px; }
+.spec .v small { font: 600 0.95rem/1 var(--font-body); color: var(--muted); margin-left: 6px; }
+.spec dd { margin: 0; }
+.spec .n { color: var(--muted); font-size: 0.95rem; }
+.sources { padding-block: 24px 24px; color: var(--muted); font-size: 0.9rem; }
+.sources h3 { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px; }
+.sources ul { margin: 0 0 14px; padding-left: 1.1em; display: grid; gap: 4px; max-width: 60em; }
+.sources p { margin: 0; max-width: 60em; }
+.end { padding-block: 0 80px; display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 819px) {
+  body { font-size: 16px; }
+  .scrolly { display: block; }
+  .stage { height: 44vh; height: 44svh; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .cap { bottom: 10px; } .count { top: 10px; }
+  .step { min-height: 85vh; justify-content: flex-start; padding-block: 36px 60px; }
+  .short { padding-block: 48px 32px; }
+}
+</style>
+
+<div class="wrap">
+  <div class="scrolly">
+    <div class="stage" id="stage">
+      <canvas id="cv" role="img" aria-label="Animated diagram that follows the text: free weights against machines, stretch, stability, muscle regions, a checklist and sticking with exercises."></canvas>
+      <p class="count" id="count">1 / 6</p>
+      <p class="cap" id="cap">Muscle growth compared</p>
+    </div>
+    <div class="steps">
+      <section class="step">
+        <a class="back" href="./">← PT App</a>
+        <span class="eyebrow">Tools</span>
+        <h1>Any tool can build muscle</h1>
+        <p class="lede">Your muscle cannot tell a barbell from a machine. It responds to how hard it works.</p>
+        <p>A 2023 analysis that pooled studies comparing <span class="k-b">free weights</span> with <span class="k-a">machines</span> found no difference in muscle growth. Strength gains favoured whichever kind people trained with, so a powerlifter still needs the barbell.</p>
+        <span class="scrollcue">Scroll ↓</span>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Stretch</span>
+        <h2>Load the muscle when it is long</h2>
+        <p>Exercises that challenge a muscle in its stretched position tend to grow it more.</p>
+        <p>In a 12-week study, <span class="k-a">overhead triceps extensions</span> grew the triceps 19.9%, against 13.9% for pushdowns with the same sets. In another, <span class="k-c">seated leg curls</span>, which stretch the hamstrings more, grew them 14% against 9% for lying curls.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Stability</span>
+        <h2>Stable beats wobbly</h2>
+        <p>If your balance or lower back gives out first, the target muscle stops before it has worked hard.</p>
+        <p>Stable exercises such as machines, cables and chest-supported rows let you take the <span class="k-ok">muscle itself</span> close to failure. That is why the program builder favours them.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Coverage</span>
+        <h2>Two angles for big muscles</h2>
+        <p>Muscles do not always grow evenly along their length. Different exercises put more work on different parts.</p>
+        <p>For large muscles, two exercises with different angles cover more of the muscle than one. An incline and a flat press for chest, or a squat and a leg extension for quads, are typical pairs.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Fit</span>
+        <h2>Pick what suits your body</h2>
+        <p>The best version is one you feel in the target muscle, that your joints are happy with, and that you can do the same way every rep.</p>
+        <p>If an exercise hurts a joint, swap it. In the app, tap <b>Edit exercise</b> to see alternatives that train the same muscle.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Consistency</span>
+        <h2>Keep it long enough to progress</h2>
+        <p>Changing exercises every week makes progress impossible to measure, and each new movement costs a few sessions of learning before you can push it hard.</p>
+        <p>Keep your main exercises for a full training block of several weeks. <span class="k-ok">Change them</span> when they stall for weeks or start to bother your joints.</p>
+      </section>
+    </div>
+  </div>
+  <section class="short">
+    <h2>The short version</h2>
+    <dl class="spec"><div><dt>Tool</dt><dd class="v">Any<small>that loads the muscle</small></dd><dd class="n">Machines and free weights grow muscle equally.</dd></div><div><dt>Position</dt><dd class="v">Long<small>muscle under load</small></dd><dd class="n">Favour exercises hard at the stretch.</dd></div><div><dt>Big muscles</dt><dd class="v">2<small>exercises</small></dd><dd class="n">Different angles cover more of the muscle.</dd></div><div><dt>Keep for</dt><dd class="v">6+<small>weeks</small></dd><dd class="n">Long enough to see progress.</dd></div></dl>
+  </section>
+  <section class="sources">
+    <h3>Sources</h3>
+    <ul><li>Haugen et al. (2023), BMC Sports Science, Medicine and Rehabilitation: free weights versus machines.</li><li>Maeo et al. (2023), European Journal of Sport Science: overhead versus neutral-arm triceps extensions.</li><li>Maeo et al. (2021), Medicine &amp; Science in Sports &amp; Exercise: seated versus lying leg curls.</li></ul>
+    <p>The stretch chart plots published figures, and the first chart shows a reported lack of difference. The other diagrams are illustrations. The 6+ weeks guideline is a practical rule of thumb, not a measured value. This page is general education, not individual medical advice.</p>
+  </section>
+  <div class="end"><a class="back" href="./">← Back to PT App</a><a class="back" href="progressive-overload.html">Progressing your lifts →</a></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage'), cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var capEl = document.getElementById('cap'), countEl = document.getElementById('count');
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var mq = window.matchMedia('(max-width: 819px)');
+  var w = 0, h = 0, hD = 0, dpr = 1, base = 1, C = {}, active = -1, fadeStart = 0, queued = false;
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function ease(t) { t = clamp(t); return t * t * (3 - 2 * t); }
+  function A(a) { ctx.globalAlpha = base * a; }
+  function disc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, 6.2832); }
+  function F(px, weight, disp) { if (w > 600) px = Math.round(px * 1.18); ctx.font = (weight || 500) + ' ' + px + 'px ' + (disp ? '"Barlow Condensed", "Arial Narrow", sans-serif' : '"Barlow", system-ui, sans-serif'); }
+  function T(s, x, y, align, bl, col) { ctx.textAlign = align || 'left'; ctx.textBaseline = bl || 'alphabetic'; ctx.fillStyle = col || C.muted; ctx.fillText(s, x, y); }
+  function setCap(s) { if (capEl.textContent !== s) capEl.textContent = s; }
+  function line(x0, y0, x1, y1) { ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+  function rr(x, y, ww, hh, r) { r = Math.max(0, Math.min(r, ww / 2, hh / 2)); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + ww, y, x + ww, y + hh, r); ctx.arcTo(x + ww, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + ww, y, r); ctx.closePath(); }
+  function readColors() { var cs = getComputedStyle(document.documentElement); ['bg','surface','ink','muted','line','fill','a','b','c','ok','okbg'].forEach(function (k) { C[k] = cs.getPropertyValue('--' + k).trim(); }); }
+  function box() { var cw = Math.min(w, 640), ch = Math.min(hD - 92, cw * 0.72), y0 = 56 + (hD - 92 - ch) / 2; return { x0: (w - cw) / 2 + 40, x1: (w + cw) / 2 - 14, y0: y0, y1: y0 + ch, cw: cw }; }
+  /* Draw a data line through pts (data coords), clipped at data x = upto. */
+  function trace(pts, X, Y, upto, col, lw) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, X(upto), h); ctx.clip();
+    ctx.strokeStyle = col; ctx.lineWidth = lw || 3.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); pts.forEach(function (p, i) { if (i) ctx.lineTo(X(p[0]), Y(p[1])); else ctx.moveTo(X(p[0]), Y(p[1])); }); ctx.stroke(); ctx.restore();
+  }
+  function at(pts, x) { for (var i = 1; i < pts.length; i++) if (pts[i][0] >= x) { var p = pts[i - 1], n = pts[i]; return lerp(p[1], n[1], (x - p[0]) / ((n[0] - p[0]) || 1)); } return pts[pts.length - 1][1]; }
+  function sample(fn, a, b, n) { var o = []; for (var i = 0; i <= n; i++) { var x = a + (b - a) * i / n; o.push([x, fn(x)]); } return o; }
+  function legend(items, x, y) { F(12, 600); var cx = x; items.forEach(function (it) { ctx.fillStyle = it[1]; rr(cx, y - 5, 14, 8, 2); ctx.fill(); T(it[0], cx + 20, y, 'left', 'middle', C.ink); cx += 34 + ctx.measureText(it[0]).width; }); }
+
+  /* 1. Free weights and machines grow muscle equally */
+  function s1(q) {
+    var b = box(), g = ease(q), cx = (b.x0 + b.x1) / 2, bw = Math.min(120, (b.x1 - b.x0) * 0.26), full = (b.y1 - b.y0) * 0.62;
+    A(1); F(11); T('Muscle growth in direct comparisons', b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    [['Free weights', C.b, cx - bw - 20], ['Machines', C.a, cx + 20]].forEach(function (r) {
+      ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; rr(r[2], b.y1 - full, bw, full, 4); ctx.stroke();
+      ctx.fillStyle = r[1]; rr(r[2], b.y1 - full * g, bw, full * g, 4); ctx.fill();
+      F(13, 600); T(r[0], r[2] + bw / 2, b.y1 + 10, 'center', 'top', C.ink);
+    });
+    if (g > 0.9) { ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; var y = b.y1 - full - 16; line(cx - bw / 2 - 20, y, cx + bw / 2 + 20, y); line(cx - bw / 2 - 20, y, cx - bw / 2 - 20, y + 8); line(cx + bw / 2 + 20, y, cx + bw / 2 + 20, y + 8); F(18, 700, true); T('NO DIFFERENCE', cx, y - 8, 'center', 'alphabetic', C.ink); }
+    setCap('Equal bars show no measured difference, not a value · Haugen et al., 2023');
+  }
+  /* 2. Stretch: two measured examples */
+  function s2(q) {
+    var b = box(), groups = [['Triceps', [['Overhead extension', 19.9, 1], ['Pushdown', 13.9, 0]], C.a], ['Hamstrings', [['Seated curl', 14, 1], ['Lying curl', 9, 0]], C.c]];
+    var Y = function (v) { return lerp(b.y1, b.y0 + 20, v / 24); }, gw = (b.x1 - b.x0) / 2, i;
+    A(1); F(11); T('Muscle growth after 12 weeks', b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    groups.forEach(function (gr, gi) {
+      var g = ease((q - gi * 0.25) / 0.5), x0 = b.x0 + gi * gw;
+      gr[1].forEach(function (bar, j) {
+        var bw = gw * 0.32, x = x0 + gw * 0.12 + j * (bw + gw * 0.08), v = bar[1] * g;
+        A(bar[2] ? 1 : 0.4); ctx.fillStyle = gr[2]; rr(x, Y(v), bw, b.y1 - Y(v), 3); ctx.fill();
+        A(1); F(20, 700, true); T('+' + v.toFixed(v < 10 ? 1 : 1).replace('.0', '') + '%', x + bw / 2, Y(v) - 8, 'center', 'alphabetic', g > 0.95 ? C.ink : C.muted);
+        F(11, bar[2] ? 600 : 500); var words = bar[0].split(' '); words.forEach(function (wd, k) { T(wd, x + bw / 2, b.y1 + 8 + k * 14, 'center', 'top', bar[2] ? C.ink : C.muted); });
+      });
+      F(13, 600); T(gr[0].toUpperCase(), x0 + gw * 0.12, b.y0 + 4, 'left', 'top', gr[2]);
+    });
+    setCap('Bold bars stretch the muscle more · Maeo et al., 2023 and 2021');
+  }
+  /* 3. What ends the set */
+  function s3(q) {
+    var b = box(), rows = [['Balance-heavy exercise', 0.7, 'balance gives out'], ['Stable machine or cable', 1, 'muscle reaches failure']], g = ease(q);
+    A(1); F(11); T('How hard the target muscle worked when the set ended', b.x0, b.y0 - 18);
+    rows.forEach(function (r, k) {
+      var y = b.y0 + 40 + k * (b.y1 - b.y0) / 2.2, bh = 26, v = r[1] * g, W = b.x1 - b.x0;
+      F(14, 600); T(r[0], b.x0, y - 10, 'left', 'alphabetic', C.ink);
+      ctx.fillStyle = C.fill; rr(b.x0, y, W, bh, 6); ctx.fill();
+      ctx.fillStyle = k ? C.ok : C.c; rr(b.x0, y, W * v, bh, 6); ctx.fill();
+      if (g > 0.95) { F(12, 600); T(r[2], b.x0 + W * r[1], y + bh + 16, 'right', 'alphabetic', k ? C.ok : C.c);
+        ctx.strokeStyle = C.ink; ctx.lineWidth = 2; line(b.x0 + W * r[1], y - 6, b.x0 + W * r[1], y + bh + 6); }
+    });
+    F(11); T('easy', b.x0, b.y1 + 8, 'left', 'top'); T('failure', b.x1, b.y1 + 8, 'right', 'top');
+    setCap('Illustration: the stable version lets the muscle, not your balance, end the set');
+  }
+  /* 4. Regions: two angles cover more of the muscle */
+  function s4(q) {
+    var b = box(), cx = (b.x0 + b.x1) / 2, top = b.y0 + 62, mh = b.y1 - top, mw = Math.min(110, mh * 0.34), ph = q < 0.36 ? 0 : q < 0.7 ? 1 : 2;
+    var regs = [[0, 1 / 3], [1 / 3, 2 / 3], [2 / 3, 1]], lit = [[1, 2], [0, 1], [0, 1, 2]][ph], cols = [C.a, C.b, C.ok][ph];
+    var names = ['One exercise', 'A second angle', 'Both together'];
+    ctx.save(); ctx.beginPath(); ctx.ellipse(cx, top + mh / 2, mw / 2, mh / 2, 0, 0, 6.2832); ctx.clip();
+    regs.forEach(function (r, i) { A(1); ctx.fillStyle = C.fill; ctx.fillRect(cx - mw, top + r[0] * mh, mw * 2, mh / 3); if (lit.indexOf(i) >= 0) { A(0.85); ctx.fillStyle = cols; ctx.fillRect(cx - mw, top + r[0] * mh, mw * 2, mh / 3); } });
+    ctx.restore(); A(1);
+    ctx.strokeStyle = C.bg; ctx.lineWidth = 3; [1, 2].forEach(function (i) { line(cx - mw, top + i * mh / 3, cx + mw, top + i * mh / 3); });
+    ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(cx, top + mh / 2, mw / 2, mh / 2, 0, 0, 6.2832); ctx.stroke();
+    F(12); ['upper', 'middle', 'lower'].forEach(function (n, i) { T(n, cx + mw / 2 + 14, top + (i + 0.5) * mh / 3, 'left', 'middle', lit.indexOf(i) >= 0 ? C.ink : C.muted); });
+    F(22, 700, true); T(names[ph].toUpperCase(), b.x0, b.y0 + 4, 'left', 'top', cols);
+    F(12); T(lit.length + ' of 3 regions trained hard', b.x0, b.y0 + 34, 'left', 'top');
+    setCap('One muscle, shown in three regions · illustrative, not measured');
+  }
+  /* 5. A simple checklist */
+  function s5(q) {
+    var b = box(), items = ['Target muscle works hardest', 'Joints feel fine, during and after', 'Same form every rep'], i;
+    A(1); F(11); T('Keep an exercise when all three are true', b.x0, b.y0 - 18);
+    var rh = (b.y1 - b.y0) / 3.4;
+    items.forEach(function (it, k) {
+      var y = b.y0 + 20 + k * rh, on = ease((q - k * 0.25) / 0.2), r = 16;
+      ctx.fillStyle = C.fill; disc(b.x0 + r, y + r, r); ctx.fill();
+      if (on > 0) { A(on); ctx.fillStyle = C.ok; disc(b.x0 + r, y + r, r); ctx.fill(); ctx.strokeStyle = C.bg; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.beginPath(); ctx.moveTo(b.x0 + r - 7, y + r); ctx.lineTo(b.x0 + r - 2, y + r + 5); ctx.lineTo(b.x0 + r + 7, y + r - 6); ctx.stroke(); A(1); }
+      F(16, 600); T(it, b.x0 + 2 * r + 14, y + r, 'left', 'middle', on > 0.5 ? C.ink : C.muted);
+    });
+    setCap('If one fails, swap it: tap Edit exercise in the app for alternatives');
+  }
+  /* 6. Keep exercises long enough to progress */
+  function s6(q) {
+    var b = box(), n = 12, X = function (s) { return lerp(b.x0, b.x1, s / n); }, Y = function (v) { return lerp(b.y1, b.y0 + 30, (v - 76) / 22); };
+    var keep = sample(function (s) { return 80 + 2.2 * Math.pow(s, 0.82); }, 0, n, 120), swap = [], s;
+    for (s = 0; s <= n; s += 0.1) { var bl = Math.floor(s / 3 + 1e-6), inb = s - bl * 3; swap.push([s, 80 + bl * 0.7 + Math.min(inb, 2.6) * 1.6]); }
+    var u = n * ease(q);
+    A(1); legend([['Same exercise', C.ok], ['New exercise every week', C.c]], b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    F(11); [0, 3, 6, 9, 12].forEach(function (v) { T('wk ' + (v / 3 * 1).toFixed(0), X(v), b.y1 + 8, v === 0 ? 'left' : v === n ? 'right' : 'center', 'top'); });
+    trace(swap, X, Y, u, C.c, 2.5); trace(keep, X, Y, u, C.ok);
+    ctx.fillStyle = C.ok; disc(X(u), Y(at(keep, u)), 5.5); ctx.fill();
+    setCap('Strength you can measure on one lift · 3 sessions a week · schematic');
+  }
+  var SCENES = [s1, s2, s3, s4, s5, s6];
+
+  function size() { var r = stage.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2); w = r.width; h = r.height; hD = h - 44; cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr)); }
+  function render(now) {
+    queued = false; if (w < 2) return;
+    var H = window.innerHeight, sh = stage.getBoundingClientRect().height, focal = mq.matches ? sh + (H - sh) * 0.75 : H * 0.62;
+    var rects = steps.map(function (s) { return s.getBoundingClientRect(); }), idx = 0, i, p;
+    for (i = 0; i < rects.length; i++) if (rects[i].top <= focal) idx = i;
+    if (idx === 0) { var sy = window.scrollY || window.pageYOffset || 0; p = sy / Math.max(1, rects[1].top + sy - focal); }
+    else p = (focal - rects[idx].top) / Math.max(1, rects[idx].height);
+    var q = clamp(p / 0.72);
+    if (idx !== active) { fadeStart = active === -1 ? -1e9 : (now || performance.now()); active = idx; countEl.textContent = (idx + 1) + ' / ' + SCENES.length; }
+    base = clamp(((now || performance.now()) - fadeStart) / 260);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.save(); SCENES[idx](q); ctx.restore(); ctx.globalAlpha = 1;
+    if (base < 1) queue();
+  }
+  function queue() { if (!queued) { queued = true; requestAnimationFrame(render); } }
+  window.addEventListener('scroll', queue, { passive: true });
+  window.addEventListener('resize', function () { size(); queue(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { size(); queue(); }).observe(stage);
+  var dm = window.matchMedia('(prefers-color-scheme: dark)'), onTheme = function () { readColors(); queue(); };
+  if (dm.addEventListener) dm.addEventListener('change', onTheme);
+  new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  readColors(); size(); queue();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Progressing Your Lifts · PT App</title>
+<meta name="description" content="A scroll-through explainer on progressive overload, effort and double progression.">
+<meta name="theme-color" content="#000000">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Barlow:wght@400;500;600;700&display=swap">
+</head>
+<body>
+<script>
+/* Always open at the first slide, whatever scroll position the previous screen had. */
+(function () {
+  try { if ('scrollRestoration' in history) history.scrollRestoration = 'manual'; } catch (e) {}
+  function top() { window.scrollTo(0, 0); }
+  top();
+  window.addEventListener('DOMContentLoaded', top);
+  window.addEventListener('load', function () { top(); setTimeout(top, 60); setTimeout(top, 300); });
+  window.addEventListener('pageshow', top);
+})();
+</script>
+<style>
+/* Layout: text steps scroll past one sticky drawing stage (right column on desktop, top band on phones).
+   Colours follow the app: red, blue and amber for the things being compared, green for the target. */
+:root {
+  --bg: #f3f3f1; --surface: #fff; --ink: #0b0b0b; --muted: #666663; --line: #e1e1dd; --fill: #eeeeeb;
+  --a: #d8432e; --b: #2456c9; --c: #b97800; --ok: #167a48; --okbg: #dcf1e5;
+  --font-display: "Barlow Condensed", "Arial Narrow", system-ui, sans-serif;
+  --font-body: "Barlow", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+    --a: #e0503c; --b: #5585f5; --c: #e6a94a; --ok: #5fd08f; --okbg: #10301f;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #000; --surface: #121211; --ink: #f7f7f5; --muted: #9c9c98; --line: #292927; --fill: #1d1d1c;
+  --a: #e0503c; --b: #5585f5; --c: #e6a94a; --ok: #5fd08f; --okbg: #10301f;
+  color-scheme: dark;
+}
+*, *::before { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { padding-top: env(safe-area-inset-top, 0px); }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.55 var(--font-body); font-variant-numeric: tabular-nums; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1180px; margin-inline: auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.scrolly { display: grid; grid-template-columns: minmax(0, 30rem) minmax(0, 1fr); column-gap: 56px; }
+.stage { grid-column: 2; grid-row: 1; position: sticky; top: env(safe-area-inset-top, 0px); align-self: start; height: 100vh; height: 100svh; min-width: 0; }
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.cap, .count { position: absolute; margin: 0; font: 500 13px/1.35 var(--font-body); color: var(--muted); }
+.cap { left: 0; right: 0; bottom: 16px; }
+.count { right: 0; top: 16px; }
+.steps { grid-column: 1; grid-row: 1; min-width: 0; }
+.step { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; gap: 14px; padding-block: 12vh; }
+.step p { margin: 0; max-width: 34em; }
+.eyebrow { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+h1, h2 { margin: 0; font-family: var(--font-display); font-weight: 700; text-transform: uppercase; text-wrap: balance; letter-spacing: 0.005em; }
+h1 { font-size: clamp(3.2rem, 8vw, 6.4rem); line-height: 0.9; }
+h2 { font-size: clamp(2rem, 4vw, 2.9rem); line-height: 0.98; }
+.lede { font-size: 1.15rem; }
+.k-a { color: var(--a); font-weight: 600; } .k-b { color: var(--b); font-weight: 600; } .k-c { color: var(--c); font-weight: 600; } .k-ok { color: var(--ok); font-weight: 600; }
+.scrollcue { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-top: 10px; }
+.back { align-self: flex-start; display: inline-flex; align-items: center; min-height: 40px; padding: 0 14px; border: 1.5px solid var(--line); border-radius: 12px; color: var(--ink); font-weight: 600; font-size: 15px; text-decoration: none; }
+.back:hover { border-color: var(--ink); }
+.back:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.short { border-top: 1px solid var(--line); padding-block: 72px 40px; }
+.short h2 { margin-bottom: 28px; }
+.spec { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 28px 40px; margin: 0; }
+.spec div { border-top: 2px solid var(--ink); padding-top: 12px; min-width: 0; }
+.spec dt { font: 600 12px/1.3 var(--font-body); letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
+.spec .v { font: 700 2.6rem/1 var(--font-display); margin: 8px 0 6px; }
+.spec .v small { font: 600 0.95rem/1 var(--font-body); color: var(--muted); margin-left: 6px; }
+.spec dd { margin: 0; }
+.spec .n { color: var(--muted); font-size: 0.95rem; }
+.sources { padding-block: 24px 24px; color: var(--muted); font-size: 0.9rem; }
+.sources h3 { font: 600 12px/1 var(--font-body); letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 12px; }
+.sources ul { margin: 0 0 14px; padding-left: 1.1em; display: grid; gap: 4px; max-width: 60em; }
+.sources p { margin: 0; max-width: 60em; }
+.end { padding-block: 0 80px; display: flex; flex-wrap: wrap; gap: 10px; }
+@media (max-width: 819px) {
+  body { font-size: 16px; }
+  .scrolly { display: block; }
+  .stage { height: 44vh; height: 44svh; z-index: 2; background: var(--bg); border-bottom: 1px solid var(--line); }
+  .cap { bottom: 10px; } .count { top: 10px; }
+  .step { min-height: 85vh; justify-content: flex-start; padding-block: 36px 60px; }
+  .short { padding-block: 48px 32px; }
+}
+</style>
+
+<div class="wrap">
+  <div class="scrolly">
+    <div class="stage" id="stage">
+      <canvas id="cv" role="img" aria-label="Animated diagram that follows the text: a load getting easier, reps in reserve, double progression, reps against load, slowing progress and tracking."></canvas>
+      <p class="count" id="count">1 / 6</p>
+      <p class="cap" id="cap">Same weight each week</p>
+    </div>
+    <div class="steps">
+      <section class="step">
+        <a class="back" href="./">← PT App</a>
+        <span class="eyebrow">Adaptation</span>
+        <h1>Progress or plateau</h1>
+        <p class="lede">Your muscles adapt to the work you give them. Then that work stops being enough.</p>
+        <p>A weight that took you to failure in week one leaves reps to spare by week five. An easy set sends a weak growth signal, so to keep growing the work has to keep getting <span class="k-a">a little harder</span>.</p>
+        <span class="scrollcue">Scroll ↓</span>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Effort</span>
+        <h2>Count the reps you had left</h2>
+        <p><b>Reps in reserve</b> (RIR) is how many more reps you could have done. A pooled analysis of 55 studies found that muscle growth rises as sets end closer to failure. Strength gains depended on it much less.</p>
+        <p>The app aims for <span class="k-ok">1–2 RIR on big compound lifts</span>, where form breaks down near failure, and <span class="k-b">0–1 on isolation exercises</span>.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Method</span>
+        <h2>Reps first, then weight</h2>
+        <p>Each exercise in the app has a rep range, like 8–12. Keep the weight and add a rep where you can each session.</p>
+        <p>When <span class="k-ok">every set reaches the top</span> of the range, add the smallest weight step and start again at the bottom. This is called double progression, and it is what the app's <b>Next</b> target follows.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Evidence</span>
+        <h2>Both kinds of progress count</h2>
+        <p>In an 8-week study of 43 trained adults, one group <span class="k-a">added weight</span> while staying at 8–12 reps, and the other <span class="k-b">added reps</span> at the same weight.</p>
+        <p>Muscle growth was similar, and squat strength rose by about 20 kg in both. A rep gained is real progress, especially on exercises with big weight jumps.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Patience</span>
+        <h2>Progress slows, and that is normal</h2>
+        <p>Beginners add weight almost every session. After a few years, a couple of reps a month is good progress.</p>
+        <p>If a lift has not moved for 3–4 weeks, the app flags it. Check sleep and calories first, then consider a deload or swapping the exercise.</p>
+      </section>
+      <section class="step">
+        <span class="eyebrow">Tracking</span>
+        <h2>Write every set down</h2>
+        <p>You cannot beat last time if you do not know what you did. The app shows last session's sets on every exercise, with a Next target.</p>
+        <p>Fill in kg, reps and RIR, and the Progress screen turns them into your <span class="k-ok">estimated 1RM trend</span> for each lift.</p>
+      </section>
+    </div>
+  </div>
+  <section class="short">
+    <h2>The short version</h2>
+    <dl class="spec"><div><dt>Effort</dt><dd class="v">0–2<small>reps in reserve</small></dd><dd class="n">1–2 on compounds, 0–1 on isolations.</dd></div><div><dt>Method</dt><dd class="v">Reps<small>then weight</small></dd><dd class="n">Top of the range on all sets, then add load.</dd></div><div><dt>Stall</dt><dd class="v">3–4<small>weeks</small></dd><dd class="n">Check sleep and food, then deload or swap.</dd></div><div><dt>Log</dt><dd class="v">Every<small>set</small></dd><dd class="n">kg, reps and RIR.</dd></div></dl>
+  </section>
+  <section class="sources">
+    <h3>Sources</h3>
+    <ul><li>Robinson et al. (2024), Sports Medicine: proximity to failure, strength and hypertrophy.</li><li>Plotkin et al. (2022), PeerJ: progressing load or repetitions.</li></ul>
+    <p>The squat chart shows published figures rounded to about 20 kg. The RIR curve shows the reported direction, not exact values. The other diagrams are schematic or use example numbers. This page is general education, not individual medical advice.</p>
+  </section>
+  <div class="end"><a class="back" href="./">← Back to PT App</a><a class="back" href="how-muscle-grows.html">How muscle grows →</a></div>
+</div>
+<script>
+(function () {
+  'use strict';
+  var stage = document.getElementById('stage'), cv = document.getElementById('cv'), ctx = cv.getContext('2d');
+  var capEl = document.getElementById('cap'), countEl = document.getElementById('count');
+  var steps = Array.prototype.slice.call(document.querySelectorAll('.step'));
+  var mq = window.matchMedia('(max-width: 819px)');
+  var w = 0, h = 0, hD = 0, dpr = 1, base = 1, C = {}, active = -1, fadeStart = 0, queued = false;
+  function clamp(v) { return v < 0 ? 0 : v > 1 ? 1 : v; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function ease(t) { t = clamp(t); return t * t * (3 - 2 * t); }
+  function A(a) { ctx.globalAlpha = base * a; }
+  function disc(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, 6.2832); }
+  function F(px, weight, disp) { if (w > 600) px = Math.round(px * 1.18); ctx.font = (weight || 500) + ' ' + px + 'px ' + (disp ? '"Barlow Condensed", "Arial Narrow", sans-serif' : '"Barlow", system-ui, sans-serif'); }
+  function T(s, x, y, align, bl, col) { ctx.textAlign = align || 'left'; ctx.textBaseline = bl || 'alphabetic'; ctx.fillStyle = col || C.muted; ctx.fillText(s, x, y); }
+  function setCap(s) { if (capEl.textContent !== s) capEl.textContent = s; }
+  function line(x0, y0, x1, y1) { ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke(); }
+  function rr(x, y, ww, hh, r) { r = Math.max(0, Math.min(r, ww / 2, hh / 2)); ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + ww, y, x + ww, y + hh, r); ctx.arcTo(x + ww, y + hh, x, y + hh, r); ctx.arcTo(x, y + hh, x, y, r); ctx.arcTo(x, y, x + ww, y, r); ctx.closePath(); }
+  function readColors() { var cs = getComputedStyle(document.documentElement); ['bg','surface','ink','muted','line','fill','a','b','c','ok','okbg'].forEach(function (k) { C[k] = cs.getPropertyValue('--' + k).trim(); }); }
+  function box() { var cw = Math.min(w, 640), ch = Math.min(hD - 92, cw * 0.72), y0 = 56 + (hD - 92 - ch) / 2; return { x0: (w - cw) / 2 + 40, x1: (w + cw) / 2 - 14, y0: y0, y1: y0 + ch, cw: cw }; }
+  /* Draw a data line through pts (data coords), clipped at data x = upto. */
+  function trace(pts, X, Y, upto, col, lw) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, X(upto), h); ctx.clip();
+    ctx.strokeStyle = col; ctx.lineWidth = lw || 3.5; ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+    ctx.beginPath(); pts.forEach(function (p, i) { if (i) ctx.lineTo(X(p[0]), Y(p[1])); else ctx.moveTo(X(p[0]), Y(p[1])); }); ctx.stroke(); ctx.restore();
+  }
+  function at(pts, x) { for (var i = 1; i < pts.length; i++) if (pts[i][0] >= x) { var p = pts[i - 1], n = pts[i]; return lerp(p[1], n[1], (x - p[0]) / ((n[0] - p[0]) || 1)); } return pts[pts.length - 1][1]; }
+  function sample(fn, a, b, n) { var o = []; for (var i = 0; i <= n; i++) { var x = a + (b - a) * i / n; o.push([x, fn(x)]); } return o; }
+  function legend(items, x, y) { F(12, 600); var cx = x; items.forEach(function (it) { ctx.fillStyle = it[1]; rr(cx, y - 5, 14, 8, 2); ctx.fill(); T(it[0], cx + 20, y, 'left', 'middle', C.ink); cx += 34 + ctx.measureText(it[0]).width; }); }
+
+  /* 1. The same load gets easier */
+  function s1(q) {
+    var b = box(), n = 6, rir = [0, 1, 2, 3, 4, 5], bw = (b.x1 - b.x0) / n, k = Math.max(1, Math.ceil(ease(q) * n)), i;
+    var Y = function (v) { return lerp(b.y1, b.y0 + 30, v / 10); };
+    A(1); F(11); T('Same 40 kg × 10 every week: how hard was it?', b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    for (i = 0; i < n; i++) {
+      var x = b.x0 + i * bw + bw * 0.18, v = 10 - rir[i] * 1.6, on = i < k;
+      A(on ? 1 : 0.25); ctx.fillStyle = 'color-mix(in srgb, ' + C.a + ' ' + (100 - i * 15) + '%, ' + C.line + ')'; rr(x, Y(v), bw * 0.64, b.y1 - Y(v), 3); ctx.fill();
+      A(on ? 1 : 0.4); F(12, 600); T(rir[i] === 0 ? 'failure' : rir[i] + ' left', x + bw * 0.32, Y(v) - 8, 'center', 'alphabetic', C.ink);
+      A(1); F(11); T('wk ' + (i + 1), x + bw * 0.32, b.y1 + 8, 'center', 'top');
+    }
+    setCap('Week ' + k + ': ' + (k < 3 ? 'a hard set, a strong signal' : k < 5 ? 'getting easier' : 'easy now, so the signal is weak') + ' · schematic');
+  }
+  /* 2. Reps in reserve */
+  function s2(q) {
+    var b = box(), X = function (r) { return lerp(b.x1, b.x0, r / 6); }, Y = function (v) { return lerp(b.y1 - 40, b.y0 + 30, v); };
+    var curve = sample(function (r) { return 0.95 - 0.11 * r - 0.004 * r * r; }, 0, 6, 60).map(function (p) { return [p[0], p[1]]; });
+    var r = 6 - 6 * ease(q);
+    A(1); legend([['App target, compounds', C.ok], ['Isolations', C.b]], b.x0, b.y0 - 18); F(11); T('Muscle growth', b.x0, b.y0 + 6, 'left', 'top');
+    A(0.22); ctx.fillStyle = C.ok; ctx.fillRect(X(2), b.y0 + 20, X(1) - X(2), b.y1 - 40 - b.y0 - 20); ctx.fillStyle = C.b; ctx.fillRect(X(1), b.y0 + 20, X(0) - X(1), b.y1 - 40 - b.y0 - 20);
+    A(1);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 2; ctx.beginPath(); curve.forEach(function (p, i) { if (i) ctx.lineTo(X(p[0]), Y(p[1])); else ctx.moveTo(X(p[0]), Y(p[1])); }); ctx.stroke();
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, X(r), h); ctx.clip(); ctx.strokeStyle = C.a; ctx.lineWidth = 3.5; ctx.beginPath(); curve.forEach(function (p, i) { if (i) ctx.lineTo(X(p[0]), Y(p[1])); else ctx.moveTo(X(p[0]), Y(p[1])); }); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = C.a; disc(X(r), Y(at(curve, r)), 6); ctx.fill();
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1 - 40, b.x1, b.y1 - 40);
+    F(11); for (var i = 0; i <= 6; i++) T(i === 0 ? '0' : String(i), X(i), b.y1 - 32, 'center', 'top');
+    T('reps left in reserve (RIR)', (b.x0 + b.x1) / 2, b.y1 - 14, 'center', 'top');
+    setCap(Math.round(r) + (Math.round(r) === 1 ? ' rep' : ' reps') + ' in reserve · shape after Robinson et al., 2024, not exact values');
+  }
+  /* 3. Double progression, example log */
+  function s3(q) {
+    var b = box(), rows = [[40, [10, 9, 8]], [40, [11, 10, 9]], [40, [12, 11, 10]], [40, [12, 12, 12]], [42.5, [9, 8, 8]]], k = Math.max(1, Math.ceil(ease(q) * rows.length));
+    var cw = b.x1 - b.x0 + 26, x0 = b.x0 - 26, rh = Math.min(48, (b.y1 - b.y0 - 30) / 6), cols = [0, 0.3, 0.5, 0.68, 0.86].map(function (f) { return x0 + f * cw; });
+    A(1); F(11); T('Rep range 8–12 · example log', x0, b.y0 - 18);
+    F(11, 600); ['SESSION', 'WEIGHT', 'SET 1', 'SET 2', 'SET 3'].forEach(function (t, i) { T(t, cols[i], b.y0 + 4, 'left', 'top'); });
+    rows.forEach(function (r, i) {
+      if (i >= k) return; var y = b.y0 + 30 + i * rh, top = r[1].every(function (v) { return v >= 12; }), jump = i === 4;
+      if (top) { ctx.fillStyle = C.okbg; rr(x0 - 8, y - 4, cw + 8, rh - 6, 8); ctx.fill(); }
+      if (jump) { ctx.fillStyle = C.fill; rr(x0 - 8, y - 4, cw + 8, rh - 6, 8); ctx.fill(); }
+      F(16, 600); T(String(i + 1), cols[0], y + rh / 2 - 5, 'left', 'middle', C.ink);
+      F(18, 700, true); T(r[0] + ' kg', cols[1], y + rh / 2 - 5, 'left', 'middle', jump ? C.a : C.ink);
+      r[1].forEach(function (v, j) { F(18, 700, true); T(String(v), cols[2 + j], y + rh / 2 - 5, 'left', 'middle', v >= 12 ? C.ok : C.ink); });
+    });
+    setCap(k < 4 ? 'Same weight, one more rep where you can' : k === 4 ? 'All sets at 12: time to add weight' : '+2.5 kg, back to the bottom of the range');
+  }
+  /* 4. Reps or load: both work (measured) */
+  function s4(q) {
+    var b = box(), g = ease(q), cx = (b.x0 + b.x1) / 2, bw = Math.min(120, (b.x1 - b.x0) * 0.26), full = (b.y1 - b.y0) * 0.58;
+    A(1); F(11); T('Squat 1RM gain after 8 weeks, trained lifters', b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    [['Added weight', C.a, cx - bw - 20], ['Added reps', C.b, cx + 20]].forEach(function (r) {
+      ctx.fillStyle = r[1]; rr(r[2], b.y1 - full * g, bw, full * g, 4); ctx.fill();
+      F(22, 700, true); T('≈ +' + Math.round(20 * g) + ' kg', r[2] + bw / 2, b.y1 - full * g - 10, 'center', 'alphabetic', g > 0.95 ? C.ink : C.muted);
+      F(13, 600); T(r[0], r[2] + bw / 2, b.y1 + 10, 'center', 'top', C.ink);
+    });
+    if (g > 0.9) { F(14, 600); T('Muscle growth: similar in both groups', cx, b.y0 + 8, 'center', 'top', C.ink); }
+    setCap('43 trained adults, 8 weeks · Plotkin et al., 2022');
+  }
+  /* 5. Progress slows over the years */
+  function s5(q) {
+    var b = box(), X = function (t) { return lerp(b.x0, b.x1, t / 5); }, Y = function (v) { return lerp(b.y1, b.y0 + 24, v / 100); };
+    var f = function (t) { return 100 * (1 - Math.exp(-t / 1.4)); }, pts = sample(f, 0, 5, 150), u = 0.05 + 4.95 * ease(q);
+    A(1); F(11); T('Strength over years of training', b.x0, b.y0 - 18);
+    ctx.strokeStyle = C.line; ctx.lineWidth = 1.5; line(b.x0, b.y1, b.x1, b.y1);
+    F(11); [0, 1, 2, 3, 4, 5].forEach(function (t) { T('year ' + t, X(t), b.y1 + 8, t === 0 ? 'left' : t === 5 ? 'right' : 'center', 'top'); });
+    trace(pts, X, Y, u, C.a); ctx.fillStyle = C.a; disc(X(u), Y(f(u)), 6); ctx.fill();
+    var rate = (f(u + 1 / 12) - f(u)) / f(1 / 12);
+    F(22, 700, true); T(rate > 0.6 ? 'FAST' : rate > 0.2 ? 'SLOWER' : 'SLOW AND STEADY', X(u) + (u > 3.5 ? -12 : 12), Y(f(u)) + 30, u > 3.5 ? 'right' : 'left', 'alphabetic', C.ink);
+    setCap('Each month adds less than the one before · schematic');
+  }
+  /* 6. Track every set */
+  function s6(q) {
+    var b = box(), v = [80, 81.5, 82, 83.5, 84, 84, 85.5, 86, 86, 87.5, 88, 89], n = v.length, X = function (i) { return lerp(b.x0, b.x1, i / (n - 1)); }, Y = function (x) { return lerp(b.y1, b.y0 + 24, (x - 78) / 12); };
+    var k = Math.max(1, Math.ceil(ease(q) * n)), i;
+    A(1); F(11); T('Estimated 1RM, kg · example', b.x0, b.y0 - 18);
+    [80, 85, 90].forEach(function (g) { ctx.strokeStyle = C.line; ctx.lineWidth = 1; line(b.x0, Y(g), b.x1, Y(g)); T(String(g), b.x0 - 8, Y(g), 'right', 'middle'); });
+    var pts = v.map(function (x, i) { return [i, x]; }); trace(pts, X, Y, k - 1, C.ink, 2.5);
+    for (i = 0; i < k; i++) { ctx.fillStyle = i === k - 1 ? C.ink : C.bg; disc(X(i), Y(v[i]), i === k - 1 ? 5.5 : 3.5); ctx.fill(); ctx.strokeStyle = C.ink; ctx.lineWidth = 1.5; disc(X(i), Y(v[i]), i === k - 1 ? 5.5 : 3.5); ctx.stroke(); }
+    F(20, 700, true); T(String(v[k - 1]), X(k - 1), Y(v[k - 1]) - 12, k > n - 2 ? 'right' : 'center', 'alphabetic', C.ink);
+    F(11); T('session', b.x1, b.y1 + 8, 'right', 'top');
+    setCap('Session ' + k + ': +' + (v[k - 1] - v[0]).toFixed(1) + ' kg since the first · the same chart is on your Progress screen');
+  }
+  var SCENES = [s1, s2, s3, s4, s5, s6];
+
+  function size() { var r = stage.getBoundingClientRect(); dpr = Math.min(window.devicePixelRatio || 1, 2); w = r.width; h = r.height; hD = h - 44; cv.width = Math.max(1, Math.round(w * dpr)); cv.height = Math.max(1, Math.round(h * dpr)); }
+  function render(now) {
+    queued = false; if (w < 2) return;
+    var H = window.innerHeight, sh = stage.getBoundingClientRect().height, focal = mq.matches ? sh + (H - sh) * 0.75 : H * 0.62;
+    var rects = steps.map(function (s) { return s.getBoundingClientRect(); }), idx = 0, i, p;
+    for (i = 0; i < rects.length; i++) if (rects[i].top <= focal) idx = i;
+    if (idx === 0) { var sy = window.scrollY || window.pageYOffset || 0; p = sy / Math.max(1, rects[1].top + sy - focal); }
+    else p = (focal - rects[idx].top) / Math.max(1, rects[idx].height);
+    var q = clamp(p / 0.72);
+    if (idx !== active) { fadeStart = active === -1 ? -1e9 : (now || performance.now()); active = idx; countEl.textContent = (idx + 1) + ' / ' + SCENES.length; }
+    base = clamp(((now || performance.now()) - fadeStart) / 260);
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h); ctx.save(); SCENES[idx](q); ctx.restore(); ctx.globalAlpha = 1;
+    if (base < 1) queue();
+  }
+  function queue() { if (!queued) { queued = true; requestAnimationFrame(render); } }
+  window.addEventListener('scroll', queue, { passive: true });
+  window.addEventListener('resize', function () { size(); queue(); });
+  if (window.ResizeObserver) new ResizeObserver(function () { size(); queue(); }).observe(stage);
+  var dm = window.matchMedia('(prefers-color-scheme: dark)'), onTheme = function () { readColors(); queue(); };
+  if (dm.addEventListener) dm.addEventListener('change', onTheme);
+  new MutationObserver(onTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(queue);
+  readColors(); size(); queue();
+})();
+</script>
+</body>
+</html>
