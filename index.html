@@ -301,7 +301,9 @@ function stall(n){const r=series()[n];if(!r)return false;const cut=new Date(new 
 const step=kg=>kg<20?1:kg<100?2.5:5;
 function sug(e,L){let o='';const m=e.r.match(/(\d+)\D+(\d+)/),lo=m?+m[1]:0,hi=m?+m[2]:0;
  if(L&&L.length&&hi){const ws=L.map(x=>x[0]).sort((a,b)=>a-b),mx=ws[ws.length-1];
-  if(L.every(x=>x[1]>=hi))o=rd(mx+step(mx))+' kg or the next step up, restart at '+lo+' reps';
+  const spread=(mx-ws[0])/mx;
+  if(L.every(x=>x[1]>=hi)&&spread>.15)o='Loads varied a lot between sets last time. Pick one weight and use it on all sets';
+  else if(L.every(x=>x[1]>=hi))o=rd(mx+step(mx))+' kg or the next step up, restart at '+lo+' reps';
   else{let base;if(L.length>=3)base=ws[Math.floor((ws.length-1)/2)];else{const ok=L.filter(x=>x[1]>=lo).map(x=>x[0]);base=ok.length?Math.max(...ok):ws[0]}
    const at=L.filter(x=>x[0]===base),mn=Math.min(...at.map(x=>x[1]));
    o=mn<lo?rd(base-step(base))+' kg on all sets, '+lo+'+ reps':base+' kg on all sets, '+Math.min(hi,mn+1)+'+ reps';
